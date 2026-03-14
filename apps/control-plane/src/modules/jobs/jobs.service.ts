@@ -1,10 +1,12 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
+import { Injectable, NotFoundException, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 
 import { RedisService } from "../../shared/persistence/redis.service";
+import { DeadLetterRepository } from "./dead-letter.repository";
 
 export type JobState =
   | "queued"
   | "running"
+  | "waiting_approval"
   | "retrying"
   | "completed"
   | "failed"
@@ -31,7 +33,10 @@ type DeadLetterRecord = {
 
 @Injectable()
 export class JobsService implements OnModuleInit, OnModuleDestroy {
-  constructor(private readonly redisService: RedisService) {}
+  constructor(
+    private readonly redisService: RedisService,
+    private readonly deadLetterRepository: DeadLetterRepository
+  ) {}
 
   private readonly maxConcurrency = 2;
   private readonly memoryQueues = new Map<string, QueueTask[]>();
@@ -77,7 +82,7 @@ export class JobsService implements OnModuleInit, OnModuleDestroy {
       queue,
       payload,
       attempt: 0,
-      maxRetries: handlers?.maxRetries ?? 2,
+      maxRetries: handlers?.maxRetries ?? 3,
       process: handlers?.process,
       onStateChange: handlers?.onStateChange
     };
@@ -96,7 +101,7 @@ export class JobsService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  listDeadLetters(input?: {
+  async listDeadLetters(input?: {
     queue?: string;
     limit?: number;
     offset?: number;
@@ -104,10 +109,100 @@ export class JobsService implements OnModuleInit, OnModuleDestroy {
     const queue = input?.queue;
     const limit = input?.limit ?? 20;
     const offset = input?.offset ?? 0;
-    const filtered = queue
+    const fromMemory = queue
       ? this.deadLetters.filter((item) => item.queue === queue)
       : this.deadLetters;
-    return filtered.slice(offset, offset + limit);
+    const memorySlice = fromMemory.slice(offset, offset + limit);
+    if (this.deadLetterRepository.isDbEnabled()) {
+      const fromDb = await this.deadLetterRepository.list({
+        queue,
+        limit,
+        offset: 0,
+        resolved: false
+      });
+      const memoryKeys = new Set(memorySlice.map((d) => d.taskKey));
+      const fromDbFiltered = fromDb.filter((d) => !memoryKeys.has(d.taskKey));
+      return [...memorySlice, ...fromDbFiltered].slice(0, limit);
+    }
+    return memorySlice;
+  }
+
+  private getDeadLetter(taskKey: string): DeadLetterRecord | null {
+    const found = this.deadLetters.find((d) => d.taskKey === taskKey);
+    return found ?? null;
+  }
+
+  async retryDeadLetter(taskKey: string): Promise<void> {
+    const fromMemory = this.getDeadLetter(taskKey);
+    if (fromMemory) {
+      this.deadLetters.splice(this.deadLetters.indexOf(fromMemory), 1);
+      await this.redisService.enqueue(
+        fromMemory.queue,
+        JSON.stringify(fromMemory.payload)
+      );
+      if (!this.memoryQueues.has(fromMemory.queue)) {
+        this.memoryQueues.set(fromMemory.queue, []);
+      }
+      this.memoryQueues.get(fromMemory.queue)!.push({
+        taskKey: fromMemory.taskKey,
+        queue: fromMemory.queue,
+        payload: fromMemory.payload,
+        attempt: 0,
+        maxRetries: 3
+      });
+    }
+    if (this.deadLetterRepository.isDbEnabled()) {
+      const fromDb = await this.deadLetterRepository.getByTaskKey(taskKey);
+      if (fromDb) {
+        await this.redisService.enqueue(
+          fromDb.queue,
+          JSON.stringify(fromDb.payload)
+        );
+        await this.deadLetterRepository.markResolved(taskKey, "retry");
+      } else if (!fromMemory) {
+        throw new NotFoundException("DEAD_LETTER_NOT_FOUND");
+      }
+    } else if (!fromMemory) {
+      throw new NotFoundException("DEAD_LETTER_NOT_FOUND");
+    }
+  }
+
+  async replayDeadLetter(taskKey: string): Promise<void> {
+    return this.retryDeadLetter(taskKey);
+  }
+
+  async ignoreDeadLetter(taskKey: string): Promise<void> {
+    const fromMemory = this.getDeadLetter(taskKey);
+    if (fromMemory) {
+      this.deadLetters.splice(this.deadLetters.indexOf(fromMemory), 1);
+    }
+    if (this.deadLetterRepository.isDbEnabled()) {
+      const fromDb = await this.deadLetterRepository.getByTaskKey(taskKey);
+      if (fromDb) {
+        await this.deadLetterRepository.markResolved(taskKey, "ignore");
+      } else if (!fromMemory) {
+        throw new NotFoundException("DEAD_LETTER_NOT_FOUND");
+      }
+    } else if (!fromMemory) {
+      throw new NotFoundException("DEAD_LETTER_NOT_FOUND");
+    }
+  }
+
+  async terminateDeadLetter(taskKey: string): Promise<void> {
+    const fromMemory = this.getDeadLetter(taskKey);
+    if (fromMemory) {
+      this.deadLetters.splice(this.deadLetters.indexOf(fromMemory), 1);
+    }
+    if (this.deadLetterRepository.isDbEnabled()) {
+      const fromDb = await this.deadLetterRepository.getByTaskKey(taskKey);
+      if (fromDb) {
+        await this.deadLetterRepository.markResolved(taskKey, "terminate");
+      } else if (!fromMemory) {
+        throw new NotFoundException("DEAD_LETTER_NOT_FOUND");
+      }
+    } else if (!fromMemory) {
+      throw new NotFoundException("DEAD_LETTER_NOT_FOUND");
+    }
   }
 
   private async processLoop() {
@@ -162,14 +257,18 @@ export class JobsService implements OnModuleInit, OnModuleDestroy {
         return;
       }
 
-      this.deadLetters.unshift({
+      const dlRecord: DeadLetterRecord = {
         taskKey: task.taskKey,
         queue: task.queue,
         payload: task.payload,
         attempts: nextAttempt,
         error: errorMessage,
         failedAt: new Date().toISOString()
-      });
+      };
+      this.deadLetters.unshift(dlRecord);
+      if (this.deadLetterRepository.isDbEnabled()) {
+        await this.deadLetterRepository.insert(dlRecord);
+      }
       await task.onStateChange?.("failed", {
         attempt: nextAttempt,
         error: errorMessage

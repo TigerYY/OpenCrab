@@ -39,7 +39,7 @@ export class IntegrationsService {
       createdAt: now,
       updatedAt: now,
       retryCount: 0,
-      maxRetries: 2,
+      maxRetries: 3,
       lastError: undefined
     };
     await this.persistJob(job);
@@ -101,6 +101,21 @@ export class IntegrationsService {
     };
     await this.persistJob(terminated);
     return terminated;
+  }
+
+  async resumePrReviewJob(jobId: string) {
+    const job = await this.getPrReviewJob(jobId);
+    if (job.status !== "waiting_approval") {
+      throw new BadRequestException("PR_REVIEW_JOB_NOT_WAITING_APPROVAL");
+    }
+    const resumed: PrReviewJob = {
+      ...job,
+      status: "queued",
+      updatedAt: new Date().toISOString()
+    };
+    await this.persistJob(resumed);
+    await this.enqueueJob(resumed);
+    return resumed;
   }
 
   private async enqueueJob(job: PrReviewJob) {

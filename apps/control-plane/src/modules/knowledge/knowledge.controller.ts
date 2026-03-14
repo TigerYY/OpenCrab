@@ -65,6 +65,16 @@ export class KnowledgeController {
     };
   }
 
+  @Post("index-jobs/:jobId/resume")
+  async resumeIndexJob(@Req() req: Request, @Param("jobId") jobId: string) {
+    return {
+      code: "OK",
+      message: "success",
+      data: await this.knowledgeService.resumeIndexJob(jobId),
+      traceId: req.requestContext?.traceId ?? "unknown"
+    };
+  }
+
   @Post("retrieve")
   retrieve(@Req() req: Request, @Body() body: RetrieveDto) {
     return {

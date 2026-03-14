@@ -1,4 +1,4 @@
-import { IsString } from "class-validator";
+import { IsArray, IsInt, IsOptional, IsString, Min } from "class-validator";
 
 export class CreateApprovalDto {
   @IsString()
@@ -9,4 +9,18 @@ export class CreateApprovalDto {
 
   @IsString()
   reason!: string;
+
+  @IsString()
+  @IsOptional()
+  riskLevel?: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  approvers?: string[];
+
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  timeoutMinutes?: number;
 }

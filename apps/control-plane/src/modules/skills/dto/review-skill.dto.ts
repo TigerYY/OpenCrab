@@ -1,6 +1,9 @@
 import { IsIn, IsOptional, IsString } from "class-validator";
 
-export class ApprovalDecisionDto {
+export class ReviewSkillDto {
+  @IsString()
+  reviewer!: string;
+
   @IsString()
   @IsIn(["approved", "rejected"])
   decision!: "approved" | "rejected";
@@ -8,8 +11,4 @@ export class ApprovalDecisionDto {
   @IsString()
   @IsOptional()
   comment?: string;
-
-  @IsString()
-  @IsOptional()
-  decidedBy?: string;
 }

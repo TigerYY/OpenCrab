@@ -44,7 +44,8 @@ OpenCrab 基于 **OpenClaw** 的执行能力构建，面向**部门级与工作�
 ## 当前阶段
 
 - **Phase 0**：文档与架构已完成  
-- **Phase 1**：已启动开发，当前已落地 `NestJS control-plane` 与 `React/Vite web-console` 工程骨架，并实现首批 API 原型  
+- **Phase 1**：已完成（控制面 + 管理台 + UAT 与签收评审）  
+- **Phase 2**：已启动（审批治理、技能治理、作业编排、可观测、PR Review 深化与生产化工程）  
 
 ## 本地启动（Phase 1）
 
@@ -133,6 +134,14 @@ npm run closeout:phase1
 - 内置最小 worker：支持并发上限、失败重试（最大重试次数）和死信记录
 - Runtime Adapter（OpenClaw 适配层）已升级为 ACP 协议客户端（DTO/错误码/重试）并接入 Session/Model Router 主链路
 - 已接入 API 级集成测试（health/workspace/audit/approval 主链路）
+
+## 生产化与交付（Phase 2）
+
+- **CI**：GitHub Actions（`.github/workflows/ci.yml`）在 push/PR 到 `main` 时执行 `npm ci`、`npm run build`、`npm run test`。
+- **容器化**：`apps/control-plane/Dockerfile`、`apps/web-console/Dockerfile`；构建示例：
+  - 控制面：`docker build -f apps/control-plane/Dockerfile apps/control-plane`
+  - 管理台：`docker build -f apps/web-console/Dockerfile apps/web-console`
+- **健康检查**：控制面提供 `GET /api/health`，可用于 readiness/liveness 探测；部署时需配置 `DATABASE_URL`、`REDIS_URL`（可选）等环境变量。
 
 ## 仓库结构（当前）
 

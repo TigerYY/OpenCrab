@@ -38,7 +38,7 @@ export class KnowledgeService {
       createdAt: now,
       updatedAt: now,
       retryCount: 0,
-      maxRetries: 2,
+      maxRetries: 3,
       lastError: undefined
     };
     await this.persistJob(job);
@@ -100,6 +100,21 @@ export class KnowledgeService {
     };
     await this.persistJob(terminated);
     return terminated;
+  }
+
+  async resumeIndexJob(jobId: string) {
+    const job = await this.getIndexJob(jobId);
+    if (job.status !== "waiting_approval") {
+      throw new BadRequestException("INDEX_JOB_NOT_WAITING_APPROVAL");
+    }
+    const resumed: IndexJob = {
+      ...job,
+      status: "queued",
+      updatedAt: new Date().toISOString()
+    };
+    await this.persistJob(resumed);
+    await this.enqueueJob(resumed);
+    return resumed;
   }
 
   retrieve(input: RetrieveDto) {

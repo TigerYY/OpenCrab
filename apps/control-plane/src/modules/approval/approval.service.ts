@@ -5,7 +5,7 @@ import { ApprovalRepository } from "./approval.repository";
 import { ApprovalDecisionDto } from "./dto/approval-decision.dto";
 import { CreateApprovalDto } from "./dto/create-approval.dto";
 
-type ApprovalStatus = "pending" | "approved" | "rejected";
+export type ApprovalStatus = "pending" | "approved" | "rejected" | "timeout";
 
 export interface ApprovalTicket {
   ticketId: string;
@@ -15,6 +15,11 @@ export interface ApprovalTicket {
   workspaceId: string;
   reason: string;
   comment?: string;
+  riskLevel?: string;
+  approvers?: string[];
+  decidedBy?: string;
+  decidedAt?: string;
+  timeoutMinutes?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -37,6 +42,9 @@ export class ApprovalService {
       approvalType: input.approvalType,
       workspaceId: input.workspaceId,
       reason: input.reason,
+      riskLevel: input.riskLevel,
+      approvers: input.approvers,
+      timeoutMinutes: input.timeoutMinutes ?? 1440,
       createdAt: now,
       updatedAt: now
     };
@@ -55,14 +63,20 @@ export class ApprovalService {
   }
 
   async decide(ticketId: string, input: ApprovalDecisionDto) {
+    const now = new Date().toISOString();
     if (this.approvalRepository.isDbEnabled()) {
       const ticket = await this.approvalRepository.getByTicketId(ticketId);
       if (!ticket) {
         throw new NotFoundException("APPROVAL_NOT_FOUND");
       }
+      if (ticket.status !== "pending") {
+        throw new NotFoundException("APPROVAL_ALREADY_DECIDED");
+      }
       ticket.status = input.decision;
       ticket.comment = input.comment;
-      ticket.updatedAt = new Date().toISOString();
+      ticket.decidedBy = input.decidedBy ?? "system";
+      ticket.decidedAt = now;
+      ticket.updatedAt = now;
 
       await this.approvalRepository.update(ticket);
       await this.redisService.set(
@@ -80,7 +94,9 @@ export class ApprovalService {
     if (!ticket) throw new NotFoundException("APPROVAL_NOT_FOUND");
     ticket.status = input.decision;
     ticket.comment = input.comment;
-    ticket.updatedAt = new Date().toISOString();
+    ticket.decidedBy = input.decidedBy;
+    ticket.decidedAt = now;
+    ticket.updatedAt = now;
 
     return {
       ...ticket,
@@ -88,10 +104,67 @@ export class ApprovalService {
     };
   }
 
-  async list() {
+  async list(filters?: { workspaceId?: string; status?: string }) {
     if (this.approvalRepository.isDbEnabled()) {
-      return this.approvalRepository.list();
+      return this.approvalRepository.list(filters);
     }
-    return this.tickets;
+    let out = this.tickets;
+    if (filters?.workspaceId)
+      out = out.filter((t) => t.workspaceId === filters.workspaceId);
+    if (filters?.status) out = out.filter((t) => t.status === filters.status);
+    return out;
+  }
+
+  async getByTicketId(ticketId: string): Promise<ApprovalTicket | null> {
+    if (this.approvalRepository.isDbEnabled()) {
+      return this.approvalRepository.getByTicketId(ticketId);
+    }
+    return this.tickets.find((t) => t.ticketId === ticketId) ?? null;
+  }
+
+  async listTimeout(workspaceId?: string): Promise<ApprovalTicket[]> {
+    if (this.approvalRepository.isDbEnabled()) {
+      const pendingPast = await this.approvalRepository.listPendingPastTimeout(
+        workspaceId
+      );
+      if (pendingPast.length > 0) {
+        await this.approvalRepository.markStatus(
+          pendingPast.map((t) => t.ticketId),
+          "timeout"
+        );
+        return pendingPast.map((t) => ({ ...t, status: "timeout" as const }));
+      }
+      return this.approvalRepository.list({
+        ...(workspaceId && { workspaceId }),
+        status: "timeout"
+      });
+    }
+    return [];
+  }
+
+  async batchDecision(
+    ticketIds: string[],
+    decision: "approved" | "rejected",
+    comment?: string,
+    decidedBy?: string
+  ) {
+    const results: { ticketId: string; ok: boolean; error?: string }[] = [];
+    for (const ticketId of ticketIds) {
+      try {
+        await this.decide(ticketId, {
+          decision,
+          comment,
+          decidedBy: decidedBy ?? "batch"
+        });
+        results.push({ ticketId, ok: true });
+      } catch (e) {
+        results.push({
+          ticketId,
+          ok: false,
+          error: e instanceof Error ? e.message : "UNKNOWN"
+        });
+      }
+    }
+    return results;
   }
 }

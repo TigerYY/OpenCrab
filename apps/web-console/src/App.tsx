@@ -24,9 +24,23 @@ type AuditEvent = {
 };
 type ApprovalTicket = {
   ticketId: string;
-  status: "pending" | "approved" | "rejected";
+  status: "pending" | "approved" | "rejected" | "timeout";
   approvalType: string;
   reason: string;
+  updatedAt: string;
+  riskLevel?: string;
+  decidedBy?: string;
+  decidedAt?: string;
+  timeoutMinutes?: number;
+};
+type ApprovalPolicy = {
+  policyId: string;
+  workspaceId: string;
+  triggerEvent: string;
+  riskLevel?: string;
+  approverRule: string;
+  timeoutMinutes: number;
+  createdAt: string;
   updatedAt: string;
 };
 type JobItem = {
@@ -40,7 +54,42 @@ type JobItem = {
   lastError?: string;
   queue?: "knowledge.index" | "pr.review";
 };
-type ConsoleTab = "workspace" | "audit" | "approval" | "jobs";
+type ConsoleTab = "workspace" | "audit" | "approval" | "skills" | "jobs" | "observability";
+type AdoptionMetrics = { wau: number; workspaceAdoptionRate: number; pilotRetention: number };
+type QualityMetrics = {
+  answerSatisfaction: number;
+  knowledgeHitRate: number;
+  prReviewSignalAccuracy: number;
+};
+type GovernanceMetrics = {
+  auditCompleteness: number;
+  approvalTriggerRate: number;
+  approvalTimeoutRate: number;
+  externalFallbackRate: number;
+};
+type PlatformMetrics = {
+  p50LatencyMs: number;
+  p95LatencyMs: number;
+  jobSuccessRate: number;
+  indexFreshnessHours: number;
+  modelErrorRate: number;
+};
+type SkillPackage = {
+  skillId: string;
+  sourceType: string;
+  version: string;
+  riskLevel?: string;
+  status: string;
+  workspaceId?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+type ApprovedSkillViewItem = {
+  skillId: string;
+  version: string;
+  status: string;
+  workspaceId: string;
+};
 type DeadLetter = {
   taskKey: string;
   queue: string;
@@ -125,8 +174,24 @@ export function App() {
   const [auditEventType, setAuditEventType] = useState("manual.note");
   const [auditUserId, setAuditUserId] = useState("u_console");
   const [approvalReason, setApprovalReason] = useState("console test");
+  const [policyTriggerEvent, setPolicyTriggerEvent] = useState("");
+  const [policyApproverRule, setPolicyApproverRule] = useState("workspace_admin");
+  const [policyTimeoutMinutes, setPolicyTimeoutMinutes] = useState(1440);
   const [auditFilter, setAuditFilter] = useState("");
-  const [approvalFilter, setApprovalFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+  const [approvalFilter, setApprovalFilter] = useState<
+    "all" | "pending" | "approved" | "rejected" | "timeout"
+  >("all");
+  const [approvalPolicies, setApprovalPolicies] = useState<ApprovalPolicy[]>([]);
+  const [timeoutTickets, setTimeoutTickets] = useState<ApprovalTicket[]>([]);
+  const [selectedTicketIds, setSelectedTicketIds] = useState<Set<string>>(new Set());
+  const [skillPackages, setSkillPackages] = useState<SkillPackage[]>([]);
+  const [approvedSkillView, setApprovedSkillView] = useState<ApprovedSkillViewItem[]>([]);
+  const [newSkillSourceType, setNewSkillSourceType] = useState<"official" | "private" | "third_party">("private");
+  const [newSkillVersion, setNewSkillVersion] = useState("1.0.0");
+  const [metricsAdoption, setMetricsAdoption] = useState<AdoptionMetrics | null>(null);
+  const [metricsQuality, setMetricsQuality] = useState<QualityMetrics | null>(null);
+  const [metricsGovernance, setMetricsGovernance] = useState<GovernanceMetrics | null>(null);
+  const [metricsPlatform, setMetricsPlatform] = useState<PlatformMetrics | null>(null);
   const [jobStatusFilter, setJobStatusFilter] = useState("all");
   const [selectedJobId, setSelectedJobId] = useState("");
   const [selectedJobDetail, setSelectedJobDetail] = useState<JobItem | null>(null);
@@ -208,6 +273,14 @@ export function App() {
         ws,
         events,
         approvals,
+        approvalPoliciesResp,
+        timeoutTicketsResp,
+        skillsPackagesResp,
+        approvedViewResp,
+        metricsAdoptionResp,
+        metricsQualityResp,
+        metricsGovernanceResp,
+        metricsPlatformResp,
         knowledge,
         pr,
         dls,
@@ -222,7 +295,51 @@ export function App() {
           { method: "GET" },
           workspaceId
         ),
-        api<ApprovalTicket[]>("/approvals", { method: "GET" }, workspaceId),
+        api<ApprovalTicket[]>(
+          `/approvals?workspaceId=${encodeURIComponent(workspaceId)}`,
+          { method: "GET" },
+          workspaceId
+        ),
+        api<ApprovalPolicy[]>(
+          `/approval-policies?workspaceId=${encodeURIComponent(workspaceId)}`,
+          { method: "GET" },
+          workspaceId
+        ),
+        api<ApprovalTicket[]>(
+          `/approvals/timeout?workspaceId=${encodeURIComponent(workspaceId)}`,
+          { method: "GET" },
+          workspaceId
+        ),
+        api<SkillPackage[]>(
+          `/skills/packages?workspaceId=${encodeURIComponent(workspaceId)}`,
+          { method: "GET" },
+          workspaceId
+        ),
+        api<ApprovedSkillViewItem[]>(
+          `/skills/approved-view?workspaceId=${encodeURIComponent(workspaceId)}`,
+          { method: "GET" },
+          workspaceId
+        ),
+        api<AdoptionMetrics>(
+          `/metrics/adoption?workspaceId=${encodeURIComponent(workspaceId)}`,
+          { method: "GET" },
+          workspaceId
+        ),
+        api<QualityMetrics>(
+          `/metrics/quality?workspaceId=${encodeURIComponent(workspaceId)}`,
+          { method: "GET" },
+          workspaceId
+        ),
+        api<GovernanceMetrics>(
+          `/metrics/governance?workspaceId=${encodeURIComponent(workspaceId)}`,
+          { method: "GET" },
+          workspaceId
+        ),
+        api<PlatformMetrics>(
+          `/metrics/platform?workspaceId=${encodeURIComponent(workspaceId)}`,
+          { method: "GET" },
+          workspaceId
+        ),
         api<JobItem[]>(
           `/knowledge/index-jobs?workspaceId=${encodeURIComponent(workspaceId)}&limit=50&offset=0`,
           { method: "GET" },
@@ -257,6 +374,38 @@ export function App() {
       setWorkspaces(Array.isArray(ws) ? ws : []);
       setAuditEvents(Array.isArray(events) ? events : []);
       setApprovalTickets(Array.isArray(approvals) ? approvals : []);
+      setApprovalPolicies(
+        Array.isArray(approvalPoliciesResp) ? approvalPoliciesResp : []
+      );
+      setTimeoutTickets(
+        Array.isArray(timeoutTicketsResp) ? timeoutTicketsResp : []
+      );
+      setSkillPackages(
+        Array.isArray(skillsPackagesResp) ? skillsPackagesResp : []
+      );
+      setApprovedSkillView(
+        Array.isArray(approvedViewResp) ? approvedViewResp : []
+      );
+      setMetricsAdoption(
+        metricsAdoptionResp && typeof metricsAdoptionResp === "object"
+          ? metricsAdoptionResp
+          : null
+      );
+      setMetricsQuality(
+        metricsQualityResp && typeof metricsQualityResp === "object"
+          ? metricsQualityResp
+          : null
+      );
+      setMetricsGovernance(
+        metricsGovernanceResp && typeof metricsGovernanceResp === "object"
+          ? metricsGovernanceResp
+          : null
+      );
+      setMetricsPlatform(
+        metricsPlatformResp && typeof metricsPlatformResp === "object"
+          ? metricsPlatformResp
+          : null
+      );
       setKnowledgeJobs(Array.isArray(knowledge) ? knowledge : []);
       setPrJobs(Array.isArray(pr) ? pr : []);
       setDeadLetters(Array.isArray(dls) ? dls : []);
@@ -400,11 +549,92 @@ export function App() {
       `/approvals/${ticketId}/decision`,
       {
         method: "POST",
-        body: JSON.stringify({ decision, comment: "handled in console" })
+        body: JSON.stringify({
+          decision,
+          comment: "handled in console",
+          decidedBy: "web_console"
+        })
       },
       workspaceId
     );
+    setSelectedTicketIds((s) => {
+      const next = new Set(s);
+      next.delete(ticketId);
+      return next;
+    });
     await refreshAll();
+  }
+
+  async function createApprovalPolicy(event: FormEvent) {
+    event.preventDefault();
+    await api<ApprovalPolicy>("/approval-policies", {
+      method: "POST",
+      body: JSON.stringify({
+        workspaceId,
+        triggerEvent: policyTriggerEvent || "model_outbound",
+        approverRule: policyApproverRule,
+        timeoutMinutes: policyTimeoutMinutes
+      })
+    }, workspaceId);
+    setPolicyTriggerEvent("");
+    setPolicyApproverRule("workspace_admin");
+    setPolicyTimeoutMinutes(1440);
+    await refreshAll();
+  }
+
+  async function batchDecisionApprovals(decision: "approved" | "rejected") {
+    const ids = Array.from(selectedTicketIds);
+    if (ids.length === 0) return;
+    await api<{ ticketId: string; ok: boolean; error?: string }[]>(
+      "/approvals/batch-decision",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          ticketIds: ids,
+          decision,
+          comment: "batch from console",
+          decidedBy: "web_console"
+        })
+      },
+      workspaceId
+    );
+    setSelectedTicketIds(new Set());
+    await refreshAll();
+  }
+
+  async function createSkillPackage(event: FormEvent) {
+    event.preventDefault();
+    await api<SkillPackage>("/skills/packages", {
+      method: "POST",
+      body: JSON.stringify({
+        sourceType: newSkillSourceType,
+        version: newSkillVersion,
+        workspaceId
+      })
+    }, workspaceId);
+    setNewSkillVersion("1.0.0");
+    await refreshAll();
+  }
+
+  async function deadLetterAction(
+    taskKey: string,
+    action: "retry" | "replay" | "ignore" | "terminate"
+  ) {
+    await api(
+      `/jobs/dead-letters/${taskKey}/${action}`,
+      { method: "POST" },
+      workspaceId
+    );
+    await refreshAll();
+  }
+
+  function toggleTicketSelection(ticketId: string) {
+    setSelectedTicketIds((s) => {
+      const next = new Set(s);
+      if (next.has(ticketId)) next.delete(ticketId);
+      else next.add(ticketId);
+      return next;
+    });
   }
 
   return (
@@ -453,10 +683,22 @@ export function App() {
           Approval
         </button>
         <button
+          className={tab === "skills" ? "tab active" : "tab"}
+          onClick={() => setTab("skills")}
+        >
+          Skills
+        </button>
+        <button
           className={tab === "jobs" ? "tab active" : "tab"}
           onClick={() => setTab("jobs")}
         >
           Jobs
+        </button>
+        <button
+          className={tab === "observability" ? "tab active" : "tab"}
+          onClick={() => setTab("observability")}
+        >
+          Observability
         </button>
       </section>
 
@@ -648,73 +890,250 @@ export function App() {
       ) : null}
 
       {tab === "approval" ? (
-        <section className="card">
-          <h2>Approvals</h2>
-          <form onSubmit={createApproval} className="form">
-            <input
-              value={approvalReason}
-              onChange={(event) => setApprovalReason(event.target.value)}
-              placeholder="approval reason"
-            />
-            <button type="submit">创建审批</button>
-          </form>
-          <div className="toolbar">
-            <label>
-              状态:
-              <select
-                value={approvalFilter}
-                onChange={(event) => {
-                  setApprovalFilter(
-                    event.target.value as "all" | "pending" | "approved" | "rejected"
-                  );
-                  setApprovalPage(1);
-                }}
-              >
-                <option value="all">all</option>
-                <option value="pending">pending</option>
-                <option value="approved">approved</option>
-                <option value="rejected">rejected</option>
-              </select>
-            </label>
-          </div>
-          <ul>
-            {approvalPageItems.map((ticket) => (
-              <li key={ticket.ticketId}>
-                <div>
-                  <code>{ticket.ticketId}</code> - {ticket.status}
+        <>
+          <section className="card">
+            <h2>审批策略</h2>
+            <form onSubmit={createApprovalPolicy} className="form">
+              <input
+                value={policyTriggerEvent}
+                onChange={(e) => setPolicyTriggerEvent(e.target.value)}
+                placeholder="triggerEvent (e.g. model_outbound)"
+              />
+              <input
+                value={policyApproverRule}
+                onChange={(e) => setPolicyApproverRule(e.target.value)}
+                placeholder="approverRule"
+              />
+              <input
+                type="number"
+                min={1}
+                value={policyTimeoutMinutes}
+                onChange={(e) => setPolicyTimeoutMinutes(Number(e.target.value) || 1440)}
+                placeholder="timeoutMinutes"
+              />
+              <button type="submit">新建策略</button>
+            </form>
+            <ul>
+              {approvalPolicies.map((p) => (
+                <li key={p.policyId}>
+                  <code>{p.policyId}</code> {p.triggerEvent} / {p.approverRule} / {p.timeoutMinutes}m
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section className="card">
+            <h2>超时单</h2>
+            <ul>
+              {timeoutTickets.map((t) => (
+                <li key={t.ticketId}>
+                  <code>{t.ticketId}</code> - timeout
+                </li>
+              ))}
+              {timeoutTickets.length === 0 ? <li className="text-slate-500">无超时单</li> : null}
+            </ul>
+          </section>
+          <section className="card">
+            <h2>Approvals</h2>
+            <form onSubmit={createApproval} className="form">
+              <input
+                value={approvalReason}
+                onChange={(event) => setApprovalReason(event.target.value)}
+                placeholder="approval reason"
+              />
+              <button type="submit">创建审批</button>
+            </form>
+            <div className="toolbar">
+              <label>
+                状态:
+                <select
+                  value={approvalFilter}
+                  onChange={(event) => {
+                    setApprovalFilter(
+                      event.target.value as
+                        | "all"
+                        | "pending"
+                        | "approved"
+                        | "rejected"
+                        | "timeout"
+                    );
+                    setApprovalPage(1);
+                  }}
+                >
+                  <option value="all">all</option>
+                  <option value="pending">pending</option>
+                  <option value="approved">approved</option>
+                  <option value="rejected">rejected</option>
+                  <option value="timeout">timeout</option>
+                </select>
+              </label>
+              {selectedTicketIds.size > 0 ? (
+                <div className="actions">
+                  <button onClick={() => void batchDecisionApprovals("approved")}>
+                    批量通过 ({selectedTicketIds.size})
+                  </button>
+                  <button onClick={() => void batchDecisionApprovals("rejected")}>
+                    批量拒绝 ({selectedTicketIds.size})
+                  </button>
                 </div>
-                {ticket.status === "pending" ? (
-                  <div className="actions">
+              ) : null}
+            </div>
+            <ul>
+              {approvalPageItems.map((ticket) => (
+                <li key={ticket.ticketId}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={selectedTicketIds.has(ticket.ticketId)}
+                      onChange={() => toggleTicketSelection(ticket.ticketId)}
+                      disabled={ticket.status !== "pending"}
+                    />
+                    <code>{ticket.ticketId}</code> - {ticket.status}
+                    {ticket.decidedBy ? ` (${ticket.decidedBy})` : ""}
+                  </label>
+                  {ticket.status === "pending" ? (
+                    <div className="actions">
+                      <button
+                        onClick={() => void decideApproval(ticket.ticketId, "approved")}
+                      >
+                        批准
+                      </button>
+                      <button
+                        onClick={() => void decideApproval(ticket.ticketId, "rejected")}
+                      >
+                        拒绝
+                      </button>
+                    </div>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+            <div className="pager">
+              <button onClick={() => setApprovalPage((p) => Math.max(1, p - 1))}>
+                上一页
+              </button>
+              <span>第 {approvalPage} 页</span>
+              <button
+                onClick={() =>
+                  setApprovalPage((p) =>
+                    p * PAGE_SIZE < filteredApprovals.length ? p + 1 : p
+                  )
+                }
+              >
+                下一页
+              </button>
+            </div>
+          </section>
+        </>
+      ) : null}
+
+      {tab === "skills" ? (
+        <section className="card">
+          <h2>Approved Skill View (workspace)</h2>
+          <ul>
+            {approvedSkillView.map((s) => (
+              <li key={`${s.skillId}-${s.version}`}>
+                <code>{s.skillId}</code> @ {s.version} - {s.status}
+              </li>
+            ))}
+            {approvedSkillView.length === 0 ? (
+              <li className="text-slate-500">无已批准技能（需 DB）</li>
+            ) : null}
+          </ul>
+          <h2>技能包</h2>
+          <form onSubmit={createSkillPackage} className="form">
+            <select
+              value={newSkillSourceType}
+              onChange={(e) =>
+                setNewSkillSourceType(e.target.value as "official" | "private" | "third_party")
+              }
+            >
+              <option value="official">official</option>
+              <option value="private">private</option>
+              <option value="third_party">third_party</option>
+            </select>
+            <input
+              value={newSkillVersion}
+              onChange={(e) => setNewSkillVersion(e.target.value)}
+              placeholder="version"
+            />
+            <button type="submit">导入</button>
+          </form>
+          <ul>
+            {skillPackages.map((p) => (
+              <li key={p.skillId}>
+                <code>{p.skillId}</code> {p.sourceType} / {p.version} - {p.status}
+                <div className="actions">
+                  {p.status === "imported" ? (
                     <button
-                      onClick={() => void decideApproval(ticket.ticketId, "approved")}
+                      onClick={() =>
+                        void api(`/skills/packages/${p.skillId}/review`, {
+                          method: "POST",
+                          body: JSON.stringify({
+                            reviewer: "console",
+                            decision: "approved",
+                            comment: "ok"
+                          })
+                        }, workspaceId).then(() => refreshAll()).catch((e) => setMessage(String(e)))
+                      }
+                    >
+                      审核通过
+                    </button>
+                  ) : null}
+                  {p.status === "reviewed" ? (
+                    <button
+                      onClick={() =>
+                        void api(`/skills/packages/${p.skillId}/approve`, {
+                          method: "POST",
+                          body: JSON.stringify({})
+                        }, workspaceId).then(() => refreshAll()).catch((e) => setMessage(String(e)))
+                      }
                     >
                       批准
                     </button>
+                  ) : null}
+                  {p.status === "approved" ? (
                     <button
-                      onClick={() => void decideApproval(ticket.ticketId, "rejected")}
+                      onClick={() =>
+                        void api(`/skills/packages/${p.skillId}/canary`, {
+                          method: "POST",
+                          body: JSON.stringify({
+                            workspaceScope: workspaceId,
+                            rolloutPercent: 50
+                          })
+                        }, workspaceId).then(() => refreshAll()).catch((e) => setMessage(String(e)))
+                      }
                     >
-                      拒绝
+                      灰度
                     </button>
-                  </div>
-                ) : null}
+                  ) : null}
+                  {(p.status === "canary" || p.status === "approved") ? (
+                    <button
+                      onClick={() =>
+                        void api(`/skills/packages/${p.skillId}/release`, {
+                          method: "POST",
+                          body: JSON.stringify({})
+                        }, workspaceId).then(() => refreshAll()).catch((e) => setMessage(String(e)))
+                      }
+                    >
+                      发布
+                    </button>
+                  ) : null}
+                  {(p.status === "released" || p.status === "canary") ? (
+                    <button
+                      onClick={() =>
+                        void api(`/skills/packages/${p.skillId}/rollback`, {
+                          method: "POST",
+                          body: JSON.stringify({})
+                        }, workspaceId).then(() => refreshAll()).catch((e) => setMessage(String(e)))
+                      }
+                    >
+                      回滚
+                    </button>
+                  ) : null}
+                </div>
               </li>
             ))}
           </ul>
-          <div className="pager">
-            <button onClick={() => setApprovalPage((p) => Math.max(1, p - 1))}>
-              上一页
-            </button>
-            <span>第 {approvalPage} 页</span>
-            <button
-              onClick={() =>
-                setApprovalPage((p) =>
-                  p * PAGE_SIZE < filteredApprovals.length ? p + 1 : p
-                )
-              }
-            >
-              下一页
-            </button>
-          </div>
         </section>
       ) : null}
 
@@ -837,6 +1256,20 @@ export function App() {
                 <li key={item.taskKey}>
                   <code>{item.taskKey}</code> [{item.queue}] attempt={item.attempts} error=
                   {item.error}
+                  <div className="actions">
+                    <button onClick={() => void deadLetterAction(item.taskKey, "retry")}>
+                      Retry
+                    </button>
+                    <button onClick={() => void deadLetterAction(item.taskKey, "replay")}>
+                      Replay
+                    </button>
+                    <button onClick={() => void deadLetterAction(item.taskKey, "ignore")}>
+                      Ignore
+                    </button>
+                    <button onClick={() => void deadLetterAction(item.taskKey, "terminate")}>
+                      Terminate
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -854,6 +1287,80 @@ export function App() {
               下一页
             </button>
           </div>
+        </section>
+      ) : null}
+
+      {tab === "observability" ? (
+        <section className="card">
+          <h2>可观测指标</h2>
+          <div className="grid">
+            <div className="card">
+              <h3>采纳</h3>
+              {metricsAdoption ? (
+                <p className="text-sm">
+                  WAU: {metricsAdoption.wau} | Adoption: {metricsAdoption.workspaceAdoptionRate}% |
+                  Retention: {metricsAdoption.pilotRetention}%
+                </p>
+              ) : (
+                <p className="text-slate-500">—</p>
+              )}
+            </div>
+            <div className="card">
+              <h3>质量</h3>
+              {metricsQuality ? (
+                <p className="text-sm">
+                  Satisfaction: {metricsQuality.answerSatisfaction}% | Hit:{" "}
+                  {metricsQuality.knowledgeHitRate}% | PR: {metricsQuality.prReviewSignalAccuracy}%
+                </p>
+              ) : (
+                <p className="text-slate-500">—</p>
+              )}
+            </div>
+            <div className="card">
+              <h3>治理</h3>
+              {metricsGovernance ? (
+                <p className="text-sm">
+                  Audit: {metricsGovernance.auditCompleteness.toFixed(1)}% | Timeout:{" "}
+                  {metricsGovernance.approvalTimeoutRate.toFixed(1)}% | Fallback:{" "}
+                  {metricsGovernance.externalFallbackRate.toFixed(1)}%
+                </p>
+              ) : (
+                <p className="text-slate-500">—</p>
+              )}
+            </div>
+            <div className="card">
+              <h3>平台</h3>
+              {metricsPlatform ? (
+                <p className="text-sm">
+                  Job Success: {metricsPlatform.jobSuccessRate.toFixed(1)}% | P50:{" "}
+                  {metricsPlatform.p50LatencyMs}ms
+                </p>
+              ) : (
+                <p className="text-slate-500">—</p>
+              )}
+            </div>
+          </div>
+          <h3 style={{ marginTop: 16 }}>Runtime Fallback</h3>
+          <p>
+            {runtimeFallbackAlerts?.hasAlert ? "ALERT" : "OK"} (window=
+            {runtimeFallbackAlerts?.windowMinutes ?? alertWindowMinutes}m, threshold=
+            {runtimeFallbackAlerts?.threshold ?? alertThreshold})
+          </p>
+          <ul>
+            {(runtimeFallbackAlerts?.breaches ?? []).map((item) => (
+              <li key={item.fallbackReason}>
+                {item.fallbackReason}: {item.count}
+              </li>
+            ))}
+          </ul>
+          <p className="text-sm">Stats (Top {statsTopN}, {statsDays}d):</p>
+          <ul>
+            {runtimeFallbackStats.map((s) => (
+              <li key={s.fallbackReason}>
+                {s.fallbackReason}: {s.count}
+              </li>
+            ))}
+          </ul>
         </section>
       ) : null}
     </main>

@@ -26,6 +26,8 @@
 | `OpenCarb-Phase2-Job-Orchestration-Spec.md` | Phase 2 作业编排规范：任务类型、状态机、幂等、重试与死信 |
 | `OpenCarb-Phase2-Observability-Metrics-Definition.md` | Phase 2 指标口径：采纳、质量、治理、平台运行与告警阈值 |
 | `OpenCarb-Phase2-PR-Review-Integration-Spec.md` | Phase 2 PR review 集成规范：规则、模板、回写与审计归档 |
+| `OpenCarb-Phase2-Execution-Backlog.md` | Phase 2 可执行看板：API 契约、迁移计划与任务拆解 |
+| `OpenCarb-Phase2-Closeout-Review.md` | Phase 2 关闭评审模板与验收结论 |
 
 ## 参考：上游项目
 

@@ -169,6 +169,45 @@ describe("OpenCarb control-plane e2e", () => {
     expect(decisionRes.body.data.jobAction).toBe("resume");
   });
 
+  it("approval list with query and timeout and batch-decision work", async () => {
+    const create1 = await request(app.getHttpServer())
+      .post("/api/approvals")
+      .set(headerSet)
+      .send({
+        approvalType: "batch_test",
+        workspaceId: "ws_default",
+        reason: "e2e batch"
+      });
+    expect(create1.status).toBe(201);
+    const ticketId1 = create1.body.data.ticketId;
+
+    const listWithQuery = await request(app.getHttpServer())
+      .get("/api/approvals?workspaceId=ws_default&status=pending")
+      .set(headerSet);
+    expect(listWithQuery.status).toBe(200);
+    expect(Array.isArray(listWithQuery.body.data)).toBe(true);
+
+    const timeoutRes = await request(app.getHttpServer())
+      .get("/api/approvals/timeout?workspaceId=ws_default")
+      .set(headerSet);
+    expect(timeoutRes.status).toBe(200);
+    expect(Array.isArray(timeoutRes.body.data)).toBe(true);
+
+    const batchRes = await request(app.getHttpServer())
+      .post("/api/approvals/batch-decision")
+      .set(headerSet)
+      .send({
+        ticketIds: [ticketId1],
+        decision: "rejected",
+        comment: "e2e batch reject",
+        decidedBy: "e2e"
+      });
+    expect(batchRes.status).toBe(201);
+    expect(Array.isArray(batchRes.body.data)).toBe(true);
+    expect(batchRes.body.data[0].ticketId).toBe(ticketId1);
+    expect(batchRes.body.data[0].ok).toBe(true);
+  });
+
   it("knowledge/pr job enqueue and list APIs work", async () => {
     const indexJobRes = await request(app.getHttpServer())
       .post("/api/knowledge/index-jobs")

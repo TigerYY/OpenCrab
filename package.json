@@ -12,6 +12,7 @@
     "test": "npm run test -w @opencarb/control-plane",
     "smoke:phase1": "bash scripts/phase1-smoke.sh",
     "uat:phase1": "bash scripts/phase1-uat.sh",
-    "closeout:phase1": "node scripts/generate-phase1-closeout.mjs"
+    "closeout:phase1": "node scripts/generate-phase1-closeout.mjs",
+    "smoke:phase2": "bash scripts/phase2-smoke.sh"
   }
 }
