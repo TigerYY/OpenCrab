@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦀 OpenCarb 团队产品白皮书</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #08111f;
+            --panel: rgba(9, 20, 37, 0.78);
+            --panel-solid: #0f1a2b;
+            --panel-soft: #132238;
+            --text: #e5eef9;
+            --muted: #95a7c4;
+            --line: rgba(172, 191, 220, 0.16);
+            --accent: #ff7a1a;
+            --accent-soft: rgba(255, 122, 26, 0.14);
+            --accent-2: #ffd166;
+            --success: #18c29c;
+            --warning: #f59e0b;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(255, 122, 26, 0.12), transparent 28%),
+                radial-gradient(circle at 80% 20%, rgba(24, 194, 156, 0.12), transparent 24%),
+                linear-gradient(180deg, #06101d 0%, #0b1324 48%, #121a2b 100%);
+            background-attachment: fixed;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.3;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 36px 36px;
+            mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.88), transparent 90%);
+        }
+
+        .display-font {
+            font-family: 'Noto Serif SC', serif;
+        }
+
+        .glass {
+            background: var(--panel);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--line);
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
+        }
+
+        .soft-panel {
+            background: linear-gradient(180deg, rgba(20, 30, 48, 0.92), rgba(12, 21, 36, 0.95));
+            border: 1px solid var(--line);
+        }
+
+        .accent-line {
+            position: relative;
+            padding-left: 1rem;
+        }
+
+        .accent-line::before {
+            content: "";
+            position: absolute;
+            top: 0.35rem;
+            left: 0;
+            width: 4px;
+            height: calc(100% - 0.7rem);
+            border-radius: 999px;
+            background: linear-gradient(180deg, var(--accent), var(--accent-2));
+        }
+
+        .nav-link {
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link.active,
+        .nav-link:hover {
+            color: #fff;
+            border-bottom-color: var(--accent);
+        }
+
+        .arch-card,
+        .strategy-card,
+        .progress-card {
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .arch-card:hover,
+        .arch-card.active,
+        .strategy-card:hover,
+        .progress-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 122, 26, 0.45);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .metric-bar > span {
+            display: block;
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        }
+    </style>
+</head>
+
+<body class="selection:bg-orange-300 selection:text-slate-950">
+    <nav class="fixed top-0 z-50 w-full border-b border-white/10 bg-slate-950/60 backdrop-blur-xl">
+        <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-xl">🦀</div>
+                <div>
+                    <div class="text-sm uppercase tracking-[0.28em] text-orange-300">OpenCarb</div>
+                    <div class="text-sm text-slate-300">团队产品白皮书 / 项目同步页</div>
+                </div>
+            </div>
+            <div class="hidden items-center gap-7 md:flex">
+                <a href="#overview" class="nav-link py-5 text-sm font-medium text-slate-300">定位</a>
+                <a href="#architecture" class="nav-link py-5 text-sm font-medium text-slate-300">架构</a>
+                <a href="#modules" class="nav-link py-5 text-sm font-medium text-slate-300">模块</a>
+                <a href="#strategy" class="nav-link py-5 text-sm font-medium text-slate-300">实施策略</a>
+                <a href="#roadmap" class="nav-link py-5 text-sm font-medium text-slate-300">路线图</a>
+                <a href="#progress" class="nav-link py-5 text-sm font-medium text-slate-300">进展</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-16">
+        <section id="overview" class="relative overflow-hidden px-4 py-20 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="grid items-start gap-8 lg:grid-cols-[1.25fr_0.75fr]">
+                    <div class="glass rounded-[28px] p-8 sm:p-10">
+                        <div class="mb-5 inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-500/10 px-4 py-1 text-xs uppercase tracking-[0.22em] text-orange-200">
+                            OpenCarb Whitepaper
+                        </div>
+                        <h1 class="display-font max-w-4xl text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl">
+                            为部门级与工作组级团队构建
+                            <span class="text-orange-300">可治理、可审计、可扩展</span>
+                            的 AI 助理平台
+                        </h1>
+                        <p class="mt-6 max-w-3xl text-lg leading-8 text-slate-300">
+                            OpenCarb 基于 OpenClaw 的执行能力构建，但不把企业能力揉进底层 runtime。
+                            它面向真实团队协作场景，优先解决工作区隔离、模型治理、知识检索、技能治理、安全审计与进度同步。
+                        </p>
+                        <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                            <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                <div class="text-xs uppercase tracking-[0.2em] text-slate-400">定位</div>
+                                <div class="mt-2 text-lg font-semibold text-white">团队级 AI 平台</div>
+                                <div class="mt-1 text-sm text-slate-400">部门、项目组、工作组优先</div>
+                            </div>
+                            <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                <div class="text-xs uppercase tracking-[0.2em] text-slate-400">默认部署</div>
+                                <div class="mt-2 text-lg font-semibold text-white">内网模型优先</div>
+                                <div class="mt-1 text-sm text-slate-400">受控外部模型回退</div>
+                            </div>
+                            <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                <div class="text-xs uppercase tracking-[0.2em] text-slate-400">实施路线</div>
+                                <div class="mt-2 text-lg font-semibold text-white">复用内核</div>
+                                <div class="mt-1 text-sm text-slate-400">外置企业控制面</div>
+                            </div>
+                            <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                <div class="text-xs uppercase tracking-[0.2em] text-slate-400">当前阶段</div>
+                                <div class="mt-2 text-lg font-semibold text-white">Phase 0</div>
+                                <div class="mt-1 text-sm text-slate-400">文档与架构完成</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-5">
+                        <div class="soft-panel rounded-[28px] p-6">
+                            <div class="text-xs uppercase tracking-[0.22em] text-slate-400">为什么现在做</div>
+                            <ul class="mt-4 space-y-4 text-sm leading-7 text-slate-300">
+                                <li class="accent-line">个人 AI 工具不理解企业私有代码和内部流程，回答易失真。</li>
+                                <li class="accent-line">核心代码不适合直接上传公有模型，合规和审计链路缺失。</li>
+                                <li class="accent-line">团队需要共享知识、共享技能、共享策略，而非单人本地体验。</li>
+                            </ul>
+                        </div>
+                        <div class="soft-panel rounded-[28px] p-6">
+                            <div class="text-xs uppercase tracking-[0.22em] text-slate-400">试点团队画像</div>
+                            <div class="mt-4 grid gap-3 text-sm text-slate-300">
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">8-20 人研发工作组</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">至少 2 个活跃代码仓 + 1 套文档源</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">有评审、知识传承、内网合规痛点</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture" class="px-4 py-20 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-12 max-w-3xl">
+                    <div class="text-xs uppercase tracking-[0.22em] text-orange-300">System Architecture</div>
+                    <h2 class="display-font mt-3 text-4xl font-bold text-white">OpenCarb 的核心不是新的 Agent，而是企业控制面</h2>
+                    <p class="mt-4 text-base leading-8 text-slate-300">
+                        OpenClaw 负责执行，OpenCarb 负责裁决。系统把身份、工作区、模型路由、知识检索、技能治理和审计策略统一收敛到控制面，避免企业版能力深度侵入上游 runtime。
+                    </p>
+                </div>
+
+                <div class="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+                    <div class="grid gap-4">
+                        <button class="arch-card active rounded-3xl border border-orange-400/30 bg-orange-500/10 p-5 text-left" data-arch="access">
+                            <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Layer 01</div>
+                            <div class="mt-2 text-xl font-semibold text-white">Access Layer</div>
+                            <div class="mt-2 text-sm text-slate-300">IDE 插件、Web 管理台、PR webhook、统一 Session Gateway</div>
+                        </button>
+                        <button class="arch-card rounded-3xl border border-white/10 bg-white/5 p-5 text-left" data-arch="control">
+                            <div class="text-xs uppercase tracking-[0.22em] text-slate-400">Layer 02</div>
+                            <div class="mt-2 text-xl font-semibold text-white">Control Plane</div>
+                            <div class="mt-2 text-sm text-slate-300">Identity、Workspace、Policy、Audit、Model Router、Skill Manager</div>
+                        </button>
+                        <button class="arch-card rounded-3xl border border-white/10 bg-white/5 p-5 text-left" data-arch="runtime">
+                            <div class="text-xs uppercase tracking-[0.22em] text-slate-400">Layer 03</div>
+                            <div class="mt-2 text-xl font-semibold text-white">Execution Plane</div>
+                            <div class="mt-2 text-sm text-slate-300">Runtime Adapter + OpenClaw Runtime，专注执行而不做最终裁决</div>
+                        </button>
+                        <button class="arch-card rounded-3xl border border-white/10 bg-white/5 p-5 text-left" data-arch="knowledge">
+                            <div class="text-xs uppercase tracking-[0.22em] text-slate-400">Layer 04</div>
+                            <div class="mt-2 text-xl font-semibold text-white">Knowledge & Model Layer</div>
+                            <div class="mt-2 text-sm text-slate-300">Knowledge Service、Local LLM Gateway、受控外部模型出口</div>
+                        </button>
+                    </div>
+
+                    <div class="glass rounded-[28px] p-7 sm:p-8">
+                        <div id="arch-access" class="arch-content">
+                            <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Access Layer</div>
+                            <h3 class="mt-3 text-3xl font-bold text-white">入口统一，语义统一</h3>
+                            <p class="mt-4 text-sm leading-7 text-slate-300">
+                                V1 入口只保留三类：IDE 插件、Web 管理台、PR review webhook/bot。所有请求先落到 Session Gateway，补齐用户、工作区、仓库、上下文和策略快照后再进入执行链路。
+                            </p>
+                            <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                    <div class="font-semibold text-white">V1 入口</div>
+                                    <div class="mt-2 text-sm text-slate-400">IDE 插件、Web 管理台、PR webhook</div>
+                                </div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                    <div class="font-semibold text-white">后续入口</div>
+                                    <div class="mt-2 text-sm text-slate-400">企业 IM 机器人、成员侧 Web 对话入口</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="arch-control" class="arch-content hidden">
+                            <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Control Plane</div>
+                            <h3 class="mt-3 text-3xl font-bold text-white">企业能力全部外置</h3>
+                            <p class="mt-4 text-sm leading-7 text-slate-300">
+                                OpenCarb 的核心差异化都位于控制面：Identity and RBAC、Workspace Service、Policy Engine、Audit Service、Knowledge Service、Skill Manager 与 Job Orchestrator。
+                                这决定了系统是否能被企业采购、部署和审计。
+                            </p>
+                            <div class="mt-6 grid gap-3 sm:grid-cols-2">
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">统一身份与角色裁决</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">工作区隔离与资源绑定</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">模型路由与外发策略</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">技能审批、版本锁定与灰度</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">审计闭环与追责能力</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">审批挂起与恢复作业</div>
+                            </div>
+                        </div>
+
+                        <div id="arch-runtime" class="arch-content hidden">
+                            <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Execution Plane</div>
+                            <h3 class="mt-3 text-3xl font-bold text-white">复用 OpenClaw 的执行内核</h3>
+                            <p class="mt-4 text-sm leading-7 text-slate-300">
+                                不建议从零重写 runtime，也不建议长期 fork 后深改。推荐通过 Runtime Adapter 接入 OpenClaw Runtime，复用其 session 生命周期、ACP、skill 调度和工具执行机制。
+                            </p>
+                            <div class="mt-6 rounded-3xl border border-orange-400/20 bg-orange-500/10 p-5">
+                                <div class="text-sm font-semibold text-orange-100">推荐实施原则</div>
+                                <div class="mt-2 text-sm leading-7 text-slate-200">
+                                    OpenClaw 负责执行，OpenCarb 负责裁决。Runtime 只消费控制面下发的 skill 视图、工具白名单和知识结果，不负责最终权限判断。
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="arch-knowledge" class="arch-content hidden">
+                            <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Knowledge & Model Layer</div>
+                            <h3 class="mt-3 text-3xl font-bold text-white">内网模型优先，知识由平台统一过滤</h3>
+                            <p class="mt-4 text-sm leading-7 text-slate-300">
+                                Knowledge Service 负责仓库、文档和 FAQ 的统一索引和权限过滤；Model Router 作为统一模型代理，负责在 Local LLM Gateway 与受控外部模型之间路由；高风险外发在 Policy Engine 中触发审批。
+                            </p>
+                            <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                    <div class="font-semibold text-white">知识边界</div>
+                                    <div class="mt-2 text-sm text-slate-400">runtime 不直连原始知识源，只获取已过滤结果。</div>
+                                </div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                    <div class="font-semibold text-white">模型边界</div>
+                                    <div class="mt-2 text-sm text-slate-400">默认内网优先，外部模型必须显式配置并经策略控制。</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="modules" class="px-4 py-20 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-12 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                    <div class="max-w-3xl">
+                        <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Core Modules</div>
+                        <h2 class="display-font mt-3 text-4xl font-bold text-white">V1 核心模块与非目标边界</h2>
+                    </div>
+                    <div class="max-w-xl text-sm leading-7 text-slate-300">
+                        V1 不追求全公司统一大脑，而是围绕单个工作区建立最小闭环：工作区、模型、知识、技能、审计与管理台。
+                    </div>
+                </div>
+
+                <div class="grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
+                    <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                        <div class="strategy-card rounded-3xl border border-white/10 bg-white/5 p-5">
+                            <div class="text-sm font-semibold text-orange-200">Workspace</div>
+                            <div class="mt-3 text-lg font-semibold text-white">团队工作区</div>
+                            <div class="mt-3 text-sm leading-7 text-slate-400">成员、角色、仓库、文档集、模型策略和技能集都围绕一个 workspace 管理。</div>
+                        </div>
+                        <div class="strategy-card rounded-3xl border border-white/10 bg-white/5 p-5">
+                            <div class="text-sm font-semibold text-orange-200">Model</div>
+                            <div class="mt-3 text-lg font-semibold text-white">模型接入与路由</div>
+                            <div class="mt-3 text-sm leading-7 text-slate-400">支持内网模型服务接入，外部模型作为受控回退通道，通过策略路由调用。</div>
+                        </div>
+                        <div class="strategy-card rounded-3xl border border-white/10 bg-white/5 p-5">
+                            <div class="text-sm font-semibold text-orange-200">Knowledge</div>
+                            <div class="mt-3 text-lg font-semibold text-white">知识检索服务</div>
+                            <div class="mt-3 text-sm leading-7 text-slate-400">Git 仓库、文档库、FAQ 增量索引，先做权限过滤，再向 runtime 提供可引用片段。</div>
+                        </div>
+                        <div class="strategy-card rounded-3xl border border-white/10 bg-white/5 p-5">
+                            <div class="text-sm font-semibold text-orange-200">Skill</div>
+                            <div class="mt-3 text-lg font-semibold text-white">技能治理</div>
+                            <div class="mt-3 text-sm leading-7 text-slate-400">兼容 OpenClaw 的 `SKILL.md` 规范，但企业启用、审批、版本锁定都由平台治理。</div>
+                        </div>
+                        <div class="strategy-card rounded-3xl border border-white/10 bg-white/5 p-5">
+                            <div class="text-sm font-semibold text-orange-200">Audit</div>
+                            <div class="mt-3 text-lg font-semibold text-white">审计与策略</div>
+                            <div class="mt-3 text-sm leading-7 text-slate-400">记录 prompt、工具、模型、文件访问和审批结果，形成可查询、可追责的审计链路。</div>
+                        </div>
+                        <div class="strategy-card rounded-3xl border border-white/10 bg-white/5 p-5">
+                            <div class="text-sm font-semibold text-orange-200">Console</div>
+                            <div class="mt-3 text-lg font-semibold text-white">Web 管理台</div>
+                            <div class="mt-3 text-sm leading-7 text-slate-400">用于工作区配置、模型接入、技能治理、审批处理和审计查看，而不是成员端通用聊天入口。</div>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-5">
+                        <div class="glass rounded-[28px] p-6">
+                            <div class="text-xs uppercase tracking-[0.22em] text-orange-300">V1 核心场景</div>
+                            <div class="mt-5 space-y-4">
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                    <div class="font-semibold text-white">企业代码库问答与内部 API 调用指导</div>
+                                    <div class="mt-2 text-sm text-slate-400">目标是降低历史代码理解成本，并显著减少内部接口调用的幻觉。</div>
+                                </div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                    <div class="font-semibold text-white">轻量 PR 评审与规范拦截</div>
+                                    <div class="mt-2 text-sm text-slate-400">V1 先以 webhook/bot 跑通轻量闭环，不直接做完整平台化 review 流程。</div>
+                                </div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                    <div class="font-semibold text-white">新人 onboarding 与团队文档问答</div>
+                                    <div class="mt-2 text-sm text-slate-400">围绕模块、目录结构、内部流程提问，并返回带来源的答案。</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="soft-panel rounded-[28px] p-6">
+                            <div class="text-xs uppercase tracking-[0.22em] text-slate-400">V1 明确不做</div>
+                            <div class="mt-5 grid gap-3 text-sm text-slate-300">
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">全公司统一知识大脑</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">多节点沙箱执行集群</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">复杂 Graph DB 和全量知识图谱</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">Agent 自治编排平台与行业定制化重工作流</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="strategy" class="px-4 py-20 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-12 max-w-3xl">
+                    <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Implementation Strategy</div>
+                    <h2 class="display-font mt-3 text-4xl font-bold text-white">后续开发不是“从头做”，也不是“长期 fork 后深改”</h2>
+                    <p class="mt-4 text-base leading-8 text-slate-300">
+                        推荐路线是：短期可基于 OpenClaw clone/fork 做技术验证，正式产品开发切换到独立 OpenCarb 主仓，复用 OpenClaw 作为执行内核，并把企业控制面全部外置。
+                    </p>
+                </div>
+
+                <div class="grid gap-5 lg:grid-cols-3">
+                    <div class="strategy-card rounded-[28px] border border-white/10 bg-white/5 p-6">
+                        <div class="text-xs uppercase tracking-[0.22em] text-slate-400">Route A</div>
+                        <div class="mt-3 text-2xl font-semibold text-white">从零重做</div>
+                        <p class="mt-4 text-sm leading-7 text-slate-400">完全自主，但需要重做 runtime、session、skills、ACP 和工具链，成本过高，不利于首版交付。</p>
+                    </div>
+                    <div class="strategy-card rounded-[28px] border border-white/10 bg-white/5 p-6">
+                        <div class="text-xs uppercase tracking-[0.22em] text-slate-400">Route B</div>
+                        <div class="mt-3 text-2xl font-semibold text-white">长期 fork 深改</div>
+                        <p class="mt-4 text-sm leading-7 text-slate-400">前期快，但企业控制面会和执行内核高度耦合，后续同步上游更新的成本会迅速升高。</p>
+                    </div>
+                    <div class="strategy-card rounded-[28px] border border-orange-400/30 bg-orange-500/10 p-6">
+                        <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Recommended</div>
+                        <div class="mt-3 text-2xl font-semibold text-white">独立主仓 + 复用内核</div>
+                        <p class="mt-4 text-sm leading-7 text-slate-200">OpenClaw 负责执行，OpenCarb 负责工作区、RBAC、Policy、Audit、Knowledge、Model Router 与 Skill Manager。</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+                    <div class="glass rounded-[28px] p-7">
+                        <div class="text-xs uppercase tracking-[0.22em] text-orange-300">复用与自研边界</div>
+                        <div class="mt-6 grid gap-4 md:grid-cols-2">
+                            <div class="rounded-2xl border border-green-400/20 bg-green-500/8 p-4">
+                                <div class="text-sm font-semibold text-green-200">建议复用</div>
+                                <ul class="mt-3 space-y-2 text-sm text-slate-300">
+                                    <li>OpenClaw Runtime</li>
+                                    <li>ACP Bridge</li>
+                                    <li>skills 规范与目录结构</li>
+                                    <li>会话执行与 skill 调度基础逻辑</li>
+                                </ul>
+                            </div>
+                            <div class="rounded-2xl border border-blue-400/20 bg-blue-500/8 p-4">
+                                <div class="text-sm font-semibold text-blue-200">必须自研</div>
+                                <ul class="mt-3 space-y-2 text-sm text-slate-300">
+                                    <li>Workspace / Identity / RBAC</li>
+                                    <li>Policy Engine / Audit Service</li>
+                                    <li>Knowledge Service</li>
+                                    <li>Skill Manager / Web Console</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="soft-panel rounded-[28px] p-7">
+                        <div class="text-xs uppercase tracking-[0.22em] text-slate-400">推荐仓库结构</div>
+                        <div class="mt-5 rounded-3xl border border-white/10 bg-slate-950/70 p-5 text-sm text-slate-300">
+                            <pre class="overflow-x-auto font-mono leading-7">opencarb/
+  apps/
+    control-plane/
+    web-console/
+    ide-gateway/
+  services/
+    model-router/
+    knowledge-service/
+    audit-service/
+    skill-manager/
+  adapters/
+    openclaw-runtime-adapter/
+    acp-session-adapter/
+  integrations/
+    git/
+    docs/
+    idp/</pre>
+                        </div>
+                        <p class="mt-4 text-sm leading-7 text-slate-400">
+                            正式产品不把企业主逻辑写在 OpenClaw 仓库中，而是把它作为依赖、子模块或受控执行服务接入。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="roadmap" class="px-4 py-20 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-12 max-w-3xl">
+                    <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Roadmap</div>
+                    <h2 class="display-font mt-3 text-4xl font-bold text-white">从试点验证到规模化复制的四阶段路线</h2>
+                    <p class="mt-4 text-base leading-8 text-slate-300">
+                        路线设计遵循“先证明单团队价值，再扩展治理与生态”的原则。当前项目处于 Phase 0，重点是收敛范围、完成架构和同步页面。
+                    </p>
+                </div>
+
+                <div class="grid gap-5 xl:grid-cols-4">
+                    <div class="progress-card rounded-[28px] border border-green-400/30 bg-green-500/10 p-6">
+                        <div class="text-xs uppercase tracking-[0.22em] text-green-200">Phase 0</div>
+                        <div class="mt-3 text-2xl font-semibold text-white">产品验证</div>
+                        <div class="mt-4 text-sm leading-7 text-slate-200">明确试点团队、V1 范围清单、部署模式、安全边界与架构边界。</div>
+                        <div class="mt-6 h-2 rounded-full bg-white/10 metric-bar"><span style="width: 100%"></span></div>
+                        <div class="mt-3 text-xs text-green-100">当前阶段 / 已完成主要文档</div>
+                    </div>
+                    <div class="progress-card rounded-[28px] border border-white/10 bg-white/5 p-6">
+                        <div class="text-xs uppercase tracking-[0.22em] text-slate-400">Phase 1</div>
+                        <div class="mt-3 text-2xl font-semibold text-white">最小闭环</div>
+                        <div class="mt-4 text-sm leading-7 text-slate-400">工作区、模型接入、知识索引、审计闭环、轻量 PR review 和最小审批。</div>
+                        <div class="mt-6 h-2 rounded-full bg-white/10 metric-bar"><span style="width: 0%"></span></div>
+                        <div class="mt-3 text-xs text-slate-500">尚未启动，待开发排期</div>
+                    </div>
+                    <div class="progress-card rounded-[28px] border border-white/10 bg-white/5 p-6">
+                        <div class="text-xs uppercase tracking-[0.22em] text-slate-400">Phase 2</div>
+                        <div class="mt-3 text-2xl font-semibold text-white">企业化增强</div>
+                        <div class="mt-4 text-sm leading-7 text-slate-400">通用审批、增强技能治理、异步任务、质量与成本看板。</div>
+                        <div class="mt-6 h-2 rounded-full bg-white/10 metric-bar"><span style="width: 0%"></span></div>
+                        <div class="mt-3 text-xs text-slate-500">规划中</div>
+                    </div>
+                    <div class="progress-card rounded-[28px] border border-white/10 bg-white/5 p-6">
+                        <div class="text-xs uppercase tracking-[0.22em] text-slate-400">Phase 3</div>
+                        <div class="mt-3 text-2xl font-semibold text-white">规模化复制</div>
+                        <div class="mt-4 text-sm leading-7 text-slate-400">标准部署模板、团队模板、私有技能仓、跨团队能力复用。</div>
+                        <div class="mt-6 h-2 rounded-full bg-white/10 metric-bar"><span style="width: 0%"></span></div>
+                        <div class="mt-3 text-xs text-slate-500">远期阶段</div>
+                    </div>
+                </div>
+
+                <div class="mt-8 glass rounded-[28px] p-7">
+                    <div class="grid gap-4 md:grid-cols-3">
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+                            <div class="text-sm font-semibold text-white">V1 业务门槛</div>
+                            <div class="mt-3 text-sm text-slate-400">周活跃不低于 60%，续用意愿达 70% 以上正向反馈。</div>
+                        </div>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+                            <div class="text-sm font-semibold text-white">平台门槛</div>
+                            <div class="mt-3 text-sm text-slate-400">知识命中率不低于 70%，内网模型命中比例不低于 80%。</div>
+                        </div>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
+                            <div class="text-sm font-semibold text-white">合规门槛</div>
+                            <div class="mt-3 text-sm text-slate-400">审计事件完整率不低于 95%，审批结果可回溯到审批人。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="progress" class="px-4 py-20 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-12 max-w-3xl">
+                    <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Project Progress</div>
+                    <h2 class="display-font mt-3 text-4xl font-bold text-white">当前开发进展与下一步任务</h2>
+                    <p class="mt-4 text-base leading-8 text-slate-300">
+                        当前项目以“文档先行、架构先行、同步先行”为主，已完成产品规划、架构边界、实施策略和 MVP 页面。
+                        下一步将进入任务拆解、工作区服务和 Runtime Adapter 的实际开发。
+                    </p>
+                </div>
+
+                <div class="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+                    <div class="glass rounded-[28px] overflow-hidden">
+                        <div class="border-b border-white/10 px-6 py-4">
+                            <div class="text-sm font-semibold text-white">里程碑进展表</div>
+                        </div>
+                        <div class="divide-y divide-white/10 text-sm">
+                            <div class="grid grid-cols-[1.2fr_1.8fr_0.8fr] gap-4 px-6 py-4 text-slate-400">
+                                <div>模块</div>
+                                <div>内容</div>
+                                <div>状态</div>
+                            </div>
+                            <div class="grid grid-cols-[1.2fr_1.8fr_0.8fr] gap-4 px-6 py-4">
+                                <div class="font-medium text-white">产品规划</div>
+                                <div class="text-slate-300">收敛 V1 范围清单、试点团队与非目标边界</div>
+                                <div><span class="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-200">已完成</span></div>
+                            </div>
+                            <div class="grid grid-cols-[1.2fr_1.8fr_0.8fr] gap-4 px-6 py-4">
+                                <div class="font-medium text-white">系统架构</div>
+                                <div class="text-slate-300">定义控制面与执行面分层、工作区与审计边界</div>
+                                <div><span class="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-200">已完成</span></div>
+                            </div>
+                            <div class="grid grid-cols-[1.2fr_1.8fr_0.8fr] gap-4 px-6 py-4">
+                                <div class="font-medium text-white">技术实施策略</div>
+                                <div class="text-slate-300">明确 OpenClaw 复用边界与 OpenCarb 自研策略</div>
+                                <div><span class="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-200">已完成</span></div>
+                            </div>
+                            <div class="grid grid-cols-[1.2fr_1.8fr_0.8fr] gap-4 px-6 py-4">
+                                <div class="font-medium text-white">页面同步</div>
+                                <div class="text-slate-300">MVP 仪表盘与白皮书页统一成 OpenCarb 叙事</div>
+                                <div><span class="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-200">已完成</span></div>
+                            </div>
+                            <div class="grid grid-cols-[1.2fr_1.8fr_0.8fr] gap-4 px-6 py-4">
+                                <div class="font-medium text-white">Phase 1 开发准备</div>
+                                <div class="text-slate-300">MVP 任务拆解、接口草图与开发排期</div>
+                                <div><span class="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-200">待开始</span></div>
+                            </div>
+                            <div class="grid grid-cols-[1.2fr_1.8fr_0.8fr] gap-4 px-6 py-4">
+                                <div class="font-medium text-white">Phase 1 核心开发</div>
+                                <div class="text-slate-300">Workspace Service、Runtime Adapter、Knowledge Service</div>
+                                <div><span class="rounded-full bg-slate-500/15 px-3 py-1 text-xs font-semibold text-slate-300">规划中</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-6">
+                        <div class="soft-panel rounded-[28px] p-6">
+                            <div class="text-xs uppercase tracking-[0.22em] text-slate-400">当前已完成</div>
+                            <div class="mt-5 space-y-3 text-sm text-slate-300">
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">OpenCarb PRD</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">系统架构说明</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">V1 范围清单</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">运行时复用方案</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">部署与安全边界设计</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">技术实施策略</div>
+                            </div>
+                        </div>
+
+                        <div class="soft-panel rounded-[28px] p-6">
+                            <div class="text-xs uppercase tracking-[0.22em] text-slate-400">下一步建议</div>
+                            <div class="mt-5 space-y-4 text-sm leading-7 text-slate-300">
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">先产出 MVP 任务拆解清单和接口清单。</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">随后优先做 Workspace Service、Model Router 和 Knowledge Service 原型。</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">最后打通 Runtime Adapter 与 OpenClaw 的最小接入闭环。</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="border-t border-white/10 bg-slate-950/60 px-4 py-8 text-center text-sm text-slate-500 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-7xl">
+            <p>🦀 OpenCarb 团队产品白皮书 · 面向内部沟通、架构同步与阶段进展追踪</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('section');
+            const archCards = document.querySelectorAll('.arch-card');
+            const archContents = document.querySelectorAll('.arch-content');
+
+            const updateActiveNav = () => {
+                let current = 'overview';
+                sections.forEach((section) => {
+                    const top = section.offsetTop;
+                    if (window.scrollY >= top - 180) {
+                        current = section.id;
+                    }
+                });
+
+                navLinks.forEach((link) => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${current}`) {
+                        link.classList.add('active');
+                    }
+                });
+            };
+
+            updateActiveNav();
+            window.addEventListener('scroll', updateActiveNav);
+
+            archCards.forEach((card) => {
+                card.addEventListener('click', () => {
+                    const target = card.getAttribute('data-arch');
+
+                    archCards.forEach((item) => {
+                        item.classList.remove('active', 'border-orange-400/30', 'bg-orange-500/10');
+                        item.classList.add('border-white/10', 'bg-white/5');
+                        const label = item.querySelector('.text-xs');
+                        if (label) {
+                            label.classList.remove('text-orange-300');
+                            label.classList.add('text-slate-400');
+                        }
+                    });
+
+                    card.classList.add('active', 'border-orange-400/30', 'bg-orange-500/10');
+                    card.classList.remove('border-white/10', 'bg-white/5');
+                    const activeLabel = card.querySelector('.text-xs');
+                    if (activeLabel) {
+                        activeLabel.classList.add('text-orange-300');
+                        activeLabel.classList.remove('text-slate-400');
+                    }
+
+                    archContents.forEach((content) => {
+                        content.classList.add('hidden');
+                        if (content.id === `arch-${target}`) {
+                            content.classList.remove('hidden');
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
