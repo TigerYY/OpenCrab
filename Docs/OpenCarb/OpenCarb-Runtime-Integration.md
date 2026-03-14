@@ -207,7 +207,7 @@ workspace:{workspaceId}:user:{userId}:channel:{channelType}:session:{sessionId}
 
 ## 11. 模型访问隔离
 
-runtime 不应直接持有外部模型密钥，而应通过平台受控的模型代理访问模型。
+runtime 不应直接持有外部模型密钥，而应通过平台受控的模型路由层访问模型。
 
 ### 10.1 原因
 
@@ -217,8 +217,8 @@ runtime 不应直接持有外部模型密钥，而应通过平台受控的模型
 
 ### 10.2 建议
 
-- runtime 仅能调用 `OpenCarb Model Proxy`。
-- `OpenCarb Model Proxy` 再决定实际走内网还是外部模型。
+- runtime 仅能调用 `OpenCarb Model Router`。
+- `OpenCarb Model Router` 再决定实际走内网还是外部模型。
 
 ## 12. 上游升级策略
 
@@ -234,4 +234,10 @@ runtime 不应直接持有外部模型密钥，而应通过平台受控的模型
 
 ## 13. 结论
 
-`OpenCarb` 最合理的技术策略是“复用执行内核，外置企业控制面”。只要 `Runtime Adapter`、`Model Proxy`、`Skill Visibility Layer` 和 `Audit Hooks` 四个边界保持稳定，`OpenCarb` 就能在不丢失 `OpenClaw` 生态优势的前提下，逐步成长为可管理、可审计、可升级的企业产品。
+`OpenCarb` 最合理的技术策略是“复用执行内核，外置企业控制面”。只要 `Runtime Adapter`、`Model Router`、`Skill Visibility Layer` 和 `Audit Hooks` 四个边界保持稳定，`OpenCarb` 就能在不丢失 `OpenClaw` 生态优势的前提下，逐步成长为可管理、可审计、可升级的企业产品。
+
+## 14. 当前实现状态（Phase 1）
+
+- 控制面已落地 `Runtime Adapter` 协议客户端（ACP createSession / invoke）。
+- 已建立请求/响应 DTO、错误码映射和分层重试策略（网络超时/不可达/5xx 可重试）。
+- 运行时链路支持失败自动回退到本地 stub，保证控制面主流程可用性。

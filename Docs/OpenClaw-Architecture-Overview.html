@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw 架构与产品解读</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #08111f;
+            --panel: rgba(9, 20, 37, 0.78);
+            --panel-solid: #0f1a2b;
+            --panel-soft: #132238;
+            --text: #e5eef9;
+            --muted: #95a7c4;
+            --line: rgba(172, 191, 220, 0.16);
+            --accent: #ff7a1a;
+            --accent-soft: rgba(255, 122, 26, 0.14);
+            --accent-2: #ffd166;
+            --success: #18c29c;
+            --warning: #f59e0b;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(255, 122, 26, 0.12), transparent 28%),
+                radial-gradient(circle at 80% 20%, rgba(24, 194, 156, 0.12), transparent 24%),
+                linear-gradient(180deg, #06101d 0%, #0b1324 48%, #121a2b 100%);
+            background-attachment: fixed;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.3;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 36px 36px;
+            mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.88), transparent 90%);
+        }
+
+        .display-font {
+            font-family: 'Noto Serif SC', serif;
+        }
+
+        .glass {
+            background: var(--panel);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--line);
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
+        }
+
+        .soft-panel {
+            background: linear-gradient(180deg, rgba(20, 30, 48, 0.92), rgba(12, 21, 36, 0.95));
+            border: 1px solid var(--line);
+        }
+
+        .accent-line {
+            position: relative;
+            padding-left: 1rem;
+        }
+
+        .accent-line::before {
+            content: "";
+            position: absolute;
+            top: 0.35rem;
+            left: 0;
+            width: 4px;
+            height: calc(100% - 0.7rem);
+            border-radius: 999px;
+            background: linear-gradient(180deg, var(--accent), var(--accent-2));
+        }
+
+        .nav-link {
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link.active,
+        .nav-link:hover {
+            color: #fff;
+            border-bottom-color: var(--accent);
+        }
+
+        .arch-card,
+        .strategy-card {
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .arch-card:hover,
+        .arch-card.active,
+        .strategy-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 122, 26, 0.45);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .mermaid {
+            background: rgba(15, 26, 43, 0.6);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+        .mermaid svg {
+            max-width: 100%;
+        }
+    </style>
+</head>
+
+<body class="selection:bg-orange-300 selection:text-slate-950">
+    <nav class="fixed top-0 z-50 w-full border-b border-white/10 bg-slate-950/60 backdrop-blur-xl">
+        <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-xl">🦞</div>
+                <div>
+                    <div class="text-sm uppercase tracking-[0.28em] text-orange-300">OpenClaw</div>
+                    <div class="text-sm text-slate-300">架构与产品解读 / 开发团队参考</div>
+                </div>
+            </div>
+            <div class="hidden items-center gap-4 md:flex flex-wrap">
+                <a href="#exec-summary" class="nav-link py-5 text-sm font-medium text-slate-300">摘要</a>
+                <a href="#goals-metrics" class="nav-link py-5 text-sm font-medium text-slate-300">目标与指标</a>
+                <a href="#users-usecases" class="nav-link py-5 text-sm font-medium text-slate-300">用户与场景</a>
+                <a href="#value-proposition" class="nav-link py-5 text-sm font-medium text-slate-300">价值主张</a>
+                <a href="#framework" class="nav-link py-5 text-sm font-medium text-slate-300">产品框架</a>
+                <a href="#skills" class="nav-link py-5 text-sm font-medium text-slate-300">Skill 与市场</a>
+                <a href="#feature-map" class="nav-link py-5 text-sm font-medium text-slate-300">功能地图</a>
+                <a href="#product-logic" class="nav-link py-5 text-sm font-medium text-slate-300">产品逻辑</a>
+                <a href="#architecture" class="nav-link py-5 text-sm font-medium text-slate-300">技术架构</a>
+                <a href="#ecosystem" class="nav-link py-5 text-sm font-medium text-slate-300">生态与运营</a>
+                <a href="#opencrab" class="nav-link py-5 text-sm font-medium text-slate-300">OpenCrab</a>
+                <a href="#appendix" class="nav-link py-5 text-sm font-medium text-slate-300">附录</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-16">
+        <section id="exec-summary" class="relative overflow-hidden px-4 py-20 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="grid items-start gap-8 lg:grid-cols-[1.25fr_0.75fr]">
+                    <div class="glass rounded-[28px] p-8 sm:p-10">
+                        <div class="mb-5 inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-500/10 px-4 py-1 text-xs uppercase tracking-[0.22em] text-orange-200">
+                            Executive Summary
+                        </div>
+                        <h1 class="display-font max-w-4xl text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl">
+                            个人、自托管的 AI 助理<br>
+                            <span class="text-orange-300">Any OS. Any Platform. The lobster way.</span>
+                        </h1>
+                        <p class="mt-6 max-w-3xl text-lg leading-8 text-slate-300">
+                            <strong class="text-white">愿景</strong>：在用户自有设备上运行、数据不出本地的个人 AI 助理。<strong class="text-white">核心价值</strong>：本地优先、自有数据、多通道收件箱（WhatsApp/Telegram/Slack/Discord/WebChat 等）、技能生态（ClawHub）、Voice/Canvas/Nodes。产品即助理本身，Gateway 为控制面。
+                        </p>
+                        <p class="mt-4 text-sm text-slate-400">目标用户：个人与小团队、开发者与集成方。当前阶段：成熟开源（stable/beta/dev 频道，活跃贡献）。License：MIT。</p>
+                        <div class="mt-6 flex flex-wrap gap-3">
+                            <a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-200 hover:border-orange-400/30 hover:bg-orange-500/10">GitHub</a>
+                            <a href="https://openclaw.ai" target="_blank" rel="noopener" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-200 hover:border-orange-400/30 hover:bg-orange-500/10">openclaw.ai</a>
+                            <a href="https://docs.openclaw.ai" target="_blank" rel="noopener" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-200 hover:border-orange-400/30 hover:bg-orange-500/10">Docs</a>
+                            <a href="https://discord.gg/openclaw" target="_blank" rel="noopener" class="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-200 hover:border-orange-400/30 hover:bg-orange-500/10">Discord</a>
+                        </div>
+                    </div>
+                    <div class="space-y-5">
+                        <div class="soft-panel rounded-[28px] p-6">
+                            <div class="text-xs uppercase tracking-[0.22em] text-slate-400">与 OpenCrab 的关系</div>
+                            <p class="mt-4 text-sm leading-7 text-slate-300">
+                                OpenCrab 复用 OpenClaw 的<strong class="text-white">执行能力</strong>：session 生命周期、技能调度、工具执行、ACP 接入。企业所需的工作区、RBAC、审批、模型路由、审计等<strong class="text-white">控制面</strong>由 OpenCrab 独立实现，通过 Runtime Adapter 与上游对接。
+                            </p>
+                        </div>
+                        <div class="soft-panel rounded-[28px] p-6">
+                            <div class="text-xs uppercase tracking-[0.22em] text-slate-400">关键指标快照</div>
+                            <p class="mt-2 text-xs text-slate-500">数据来源：GitHub 公开信息，以官方为准。</p>
+                            <ul class="mt-3 space-y-2 text-sm text-slate-300">
+                                <li class="accent-line">Stars / Forks / Watchers（见 GitHub 仓库）</li>
+                                <li class="accent-line">主要语言：TypeScript 87%+，Swift、Kotlin 等</li>
+                                <li class="accent-line">发布频道：stable、beta、dev；Node ≥22</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="goals-metrics" class="px-4 py-20 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-10 max-w-3xl">
+                    <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Goals &amp; Success Metrics</div>
+                    <h2 class="display-font mt-3 text-3xl font-bold text-white">目标与成功指标</h2>
+                    <p class="mt-3 text-sm text-slate-400">基于 README 与公开信息概括，具体以官方为准。</p>
+                </div>
+                <div class="grid gap-6 lg:grid-cols-2">
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">产品目标（概括）</div>
+                        <ul class="mt-4 space-y-2 text-sm text-slate-300">
+                            <li class="accent-line"><strong class="text-white">短期</strong>：体验与稳定性、多通道与向导完善</li>
+                            <li class="accent-line"><strong class="text-white">中期</strong>：多平台（macOS/iOS/Android）、技能生态（ClawHub）、Voice/Canvas</li>
+                            <li class="accent-line"><strong class="text-white">长期</strong>：社区可持续、生态与集成</li>
+                        </ul>
+                    </div>
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">成功指标（建议关注）</div>
+                        <ul class="mt-4 space-y-2 text-sm text-slate-300">
+                            <li class="accent-line">Stars / Forks / Watchers 及增长率</li>
+                            <li class="accent-line">活跃贡献者数、Issue/PR 关闭率、PR 合并时长</li>
+                            <li class="accent-line">发布频率（stable/beta/dev）、文档与向导完整性</li>
+                        </ul>
+                        <p class="mt-3 text-xs text-slate-500">指标来源：GitHub API、Release 页面、CONTRIBUTING。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="users-usecases" class="px-4 py-20 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-10 max-w-3xl">
+                    <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Users &amp; Use Cases</div>
+                    <h2 class="display-font mt-3 text-3xl font-bold text-white">目标用户与场景</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-slate-300 border-collapse">
+                        <thead>
+                            <tr class="border-b border-white/10">
+                                <th class="text-left py-3 px-4 font-semibold text-white">角色</th>
+                                <th class="text-left py-3 px-4 font-semibold text-white">痛点</th>
+                                <th class="text-left py-3 px-4 font-semibold text-white">典型场景</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-white/5"><td class="py-3 px-4">个人用户</td><td class="py-3 px-4">希望数据留在本地、多端统一入口</td><td class="py-3 px-4">自有设备跑助理、多通道收件箱、技能扩展</td></tr>
+                            <tr class="border-b border-white/5"><td class="py-3 px-4">开发者/集成方</td><td class="py-3 px-4">需要 IDE/API 接入、可扩展技能</td><td class="py-3 px-4">ACP 接入、ClawHub 技能、自定义工具</td></tr>
+                            <tr class="border-b border-white/5"><td class="py-3 px-4">运维</td><td class="py-3 px-4">自托管、远程访问、沙箱与安全</td><td class="py-3 px-4">Gateway 部署、Tailscale/SSH、Docker/Nix、DM 配对</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-6 grid gap-5 lg:grid-cols-2">
+                    <div class="soft-panel rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-white">关键使用场景</div>
+                        <ul class="mt-3 space-y-2 text-sm text-slate-300">
+                            <li class="accent-line">首次安装：<code class="text-orange-200">openclaw onboard</code> → 配置模型与通道 → 首次对话</li>
+                            <li class="accent-line">日常：从任意通道发消息 → Gateway → Pi agent → 技能/工具 → 回复回通道</li>
+                            <li class="accent-line">替代路径：CLI、WebChat、macOS 应用、IDE（ACP）</li>
+                        </ul>
+                    </div>
+                    <div class="soft-panel rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-white">用户故事（JTBD）</div>
+                        <ul class="mt-3 space-y-2 text-sm text-slate-300">
+                            <li class="accent-line">作为个人用户，我希望在自有设备上跑 AI 助理，以便数据不离开本地。</li>
+                            <li class="accent-line">作为开发者，我希望通过 ACP 与技能扩展接入现有工作流。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="value-proposition" class="px-4 py-20 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-10 max-w-3xl">
+                    <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Value Proposition</div>
+                    <h2 class="display-font mt-3 text-3xl font-bold text-white">产品定位与价值主张</h2>
+                    <p class="mt-3 text-sm text-slate-400">核心能力、边界与替代方案对比。</p>
+                </div>
+                <div class="glass rounded-[28px] p-6 mb-6">
+                    <div class="text-sm font-semibold text-orange-200">核心能力矩阵</div>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        <span class="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">本地优先 Gateway</span>
+                        <span class="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">多通道收件箱</span>
+                        <span class="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">多 agent 路由</span>
+                        <span class="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">技能生态 ClawHub</span>
+                        <span class="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">Voice / Canvas / Nodes</span>
+                        <span class="rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">自有数据</span>
+                    </div>
+                </div>
+                <div class="grid gap-5 lg:grid-cols-2">
+                    <div class="strategy-card glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">本地优先</div>
+                        <p class="mt-3 text-sm leading-7 text-slate-300">Gateway 跑在用户自己的设备或自建服务器上，会话与推理不依赖公有云助理服务。</p>
+                    </div>
+                    <div class="strategy-card glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">自有数据</div>
+                        <p class="mt-3 text-sm leading-7 text-slate-300">配置、会话、技能、凭证存放在本地（如 <code class="text-orange-200">~/.openclaw/</code>），符合 own your data。</p>
+                    </div>
+                    <div class="strategy-card glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">个人助理定位</div>
+                        <p class="mt-3 text-sm leading-7 text-slate-300">目标用户是个人或小团队；多 agent 通过 workspace + session 做路由，非企业多租户/RBAC。</p>
+                    </div>
+                    <div class="strategy-card glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">安全与沙箱</div>
+                        <p class="mt-3 text-sm leading-7 text-slate-300">默认 main 在主机执行；非 main 可配置 Docker 沙箱；DM 采用 pairing/allowlist。</p>
+                    </div>
+                </div>
+                <div class="mt-6 soft-panel rounded-[28px] p-6">
+                    <div class="text-sm font-semibold text-white">边界与对比</div>
+                    <p class="mt-3 text-sm text-slate-300">vs 公有云助理：数据主权、自托管。vs 纯本地无通道：多端接入。vs 企业多租户产品：个人/小团队优先。<strong class="text-white">非</strong>：企业 RBAC/审批/审计、统一知识大脑（以官方表述为准）。</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture" class="px-4 py-20 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-12 max-w-3xl">
+                    <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Technical Architecture</div>
+                    <h2 class="display-font mt-3 text-4xl font-bold text-white">技术架构：Gateway 为控制面，Pi agent 为执行运行时</h2>
+                    <p class="mt-4 text-base leading-8 text-slate-300">
+                        所有通道流量先进入 Gateway（WebSocket 控制面，默认 <code class="rounded bg-white/10 px-1.5 py-0.5 text-orange-200">ws://127.0.0.1:18789</code>），再分发到 Pi agent（RPC）、CLI、WebChat、macOS/iOS/Android 节点等。
+                    </p>
+                </div>
+
+                <div class="mb-10">
+                    <div class="text-sm font-medium text-slate-400 mb-3">上下文图（Context）</div>
+                    <div class="mermaid rounded-[28px] border border-white/10 p-6">
+flowchart LR
+    User[用户]
+    Ch[通道 WhatsApp / Telegram / Slack ...]
+    IDE[IDE ACP]
+    Sys[OpenClaw Gateway + Pi agent]
+    Model[模型服务]
+    User --> Ch
+    User --> IDE
+    Ch --> Sys
+    IDE --> Sys
+    Sys --> Model
+                    </div>
+                    <p class="mt-2 text-xs text-slate-500">数据留在用户侧；模型可由用户自选内网或外部 API。</p>
+                </div>
+
+                <div class="mb-10">
+                    <div class="text-sm font-medium text-slate-400 mb-3">整体数据流</div>
+                    <div class="mermaid rounded-[28px] border border-white/10 p-6">
+flowchart LR
+    subgraph ch [Channels]
+        In[WhatsApp / Telegram / Slack / Discord / WebChat ...]
+    end
+    subgraph gw [Gateway]
+        WS[WebSocket Control Plane]
+    end
+    subgraph co [Consumers]
+        Pi[Pi Agent RPC]
+        CLI[CLI]
+        UI[WebChat]
+        App[macOS / iOS / Android]
+    end
+    In --> WS
+    WS --> Pi
+    WS --> CLI
+    WS --> UI
+    WS --> App
+                    </div>
+                </div>
+
+                <div class="grid gap-5 lg:grid-cols-2">
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Gateway</div>
+                        <p class="mt-3 text-sm leading-7 text-slate-300">
+                            单一 WebSocket 控制面，负责：sessions、presence、config、cron、webhooks、Control UI、Canvas host。Gateway 是连接所有客户端与 Pi agent 的枢纽，不直接执行业务逻辑。
+                        </p>
+                    </div>
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Pi Agent</div>
+                        <p class="mt-3 text-sm leading-7 text-slate-300">
+                            RPC 模式 agent 运行时，支持工具流式、块流式输出。负责 prompt 执行、skill 调度与底层工具调用，是「执行面」的核心。技能由 Pi agent 按 session 可见集合调度，Gateway 不直接执行业务逻辑。
+                        </p>
+                    </div>
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Session 模型</div>
+                        <p class="mt-3 text-sm leading-7 text-slate-300">
+                            <code class="text-orange-200">main</code> 为直连会话；群组/频道有独立 session 与隔离规则。支持激活模式（mention / always）、队列模式、回复策略（reply-back）。多 agent 通过 workspace + 每 agent 的 session 做路由。
+                        </p>
+                    </div>
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-xs uppercase tracking-[0.22em] text-orange-300">ACP（Agent Client Protocol）</div>
+                        <p class="mt-3 text-sm leading-7 text-slate-300">
+                            IDE 等客户端通过 stdio 上的 ACP 接入。session key 与 gateway session 映射，便于在 Cursor/VS Code 等环境中复用同一套会话与技能。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="framework" class="px-4 py-20 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-12 max-w-3xl">
+                    <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Product Framework</div>
+                    <h2 class="display-font mt-3 text-4xl font-bold text-white">产品框架：通道、工作区、技能与客户端</h2>
+                </div>
+
+                <div class="grid gap-6 lg:grid-cols-[1fr_1fr]">
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">通道（Channels）</div>
+                        <p class="mt-2 text-sm text-slate-400">多通道收件箱，支持群组路由（mention、reply tag、chunking）。</p>
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            <span class="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300">WhatsApp</span>
+                            <span class="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300">Telegram</span>
+                            <span class="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300">Slack</span>
+                            <span class="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300">Discord</span>
+                            <span class="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300">Google Chat</span>
+                            <span class="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300">Signal</span>
+                            <span class="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300">iMessage/BlueBubbles</span>
+                            <span class="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300">IRC</span>
+                            <span class="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300">Teams</span>
+                            <span class="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300">Matrix</span>
+                            <span class="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300">Feishu</span>
+                            <span class="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300">LINE</span>
+                            <span class="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300">Mattermost</span>
+                            <span class="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300">WebChat</span>
+                        </div>
+                    </div>
+
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">会话与工作区</div>
+                        <ul class="mt-4 space-y-2 text-sm text-slate-300">
+                            <li class="accent-line">Workspace 根目录：<code class="text-orange-200">~/.openclaw/workspace</code>（可配置）</li>
+                            <li class="accent-line">注入的 prompt 文件：AGENTS.md、SOUL.md、TOOLS.md</li>
+                            <li class="accent-line">技能目录：<code class="text-orange-200">skills/&lt;skill&gt;/SKILL.md</code></li>
+                        </ul>
+                    </div>
+
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">技能生态</div>
+                        <ul class="mt-4 space-y-2 text-sm text-slate-300">
+                            <li class="accent-line">SKILL.md 规范，目录式定义</li>
+                            <li class="accent-line">bundled / managed / workspace skills，覆盖优先级</li>
+                            <li class="accent-line">ClawHub 技能目录，可自动发现与拉取技能</li>
+                            <li class="accent-line">安装与启用门槛（gating）+ UI</li>
+                        </ul>
+                        <p class="mt-4 text-sm text-slate-400">详见下方 <a href="#skills" class="text-orange-300 hover:underline">「Skill 与 Skill 市场」</a> 章节。</p>
+                    </div>
+
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">工具与自动化</div>
+                        <ul class="mt-4 space-y-2 text-sm text-slate-300">
+                            <li class="accent-line">Browser 控制（Chrome/Chromium、CDP）</li>
+                            <li class="accent-line">Canvas（A2UI）agent 驱动可视化工作区</li>
+                            <li class="accent-line">Nodes：camera、screen、location、notifications 等</li>
+                            <li class="accent-line">Cron、Webhooks、Gmail Pub/Sub</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-6 soft-panel rounded-[28px] p-6">
+                    <div class="text-sm font-semibold text-white">客户端形态</div>
+                    <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">CLI（<code class="text-orange-200">openclaw</code>）</div>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">WebChat + Control UI</div>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">macOS 菜单栏应用</div>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">iOS / Android 节点（Voice Wake、Talk Mode、Canvas）</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="skills" class="px-4 py-20 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-12 max-w-3xl">
+                    <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Skills &amp; Skill Market</div>
+                    <h2 class="display-font mt-3 text-4xl font-bold text-white">Skill 与 Skill 市场</h2>
+                    <p class="mt-4 text-base leading-8 text-slate-300">
+                        技能是 OpenClaw 生态的核心扩展方式：目录式 SKILL.md 规范、多种来源与优先级、ClawHub 技能目录（市场）以及版本归档，共同构成「发现–安装–启用」的闭环。企业版可在此基础上做审批、私有仓与 Approved Skill View。
+                    </p>
+                </div>
+
+                <div class="grid gap-6 lg:grid-cols-2">
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">SKILL 规范要点</div>
+                        <ul class="mt-4 space-y-2 text-sm text-slate-300">
+                            <li class="accent-line"><strong class="text-white">目录与文件</strong>：技能以目录形式组织，每技能一个目录，内含 <code class="text-orange-200">SKILL.md</code>（及可选资源）。路径约定：<code class="text-orange-200">skills/&lt;skill-name&gt;/SKILL.md</code>，位于 workspace 根下或 bundled/managed 目录。</li>
+                            <li class="accent-line"><strong class="text-white">SKILL.md 内容</strong>：描述技能用途、适用场景、触发条件（when to use）、参数或约束等，供 agent 发现与调度；具体字段以 OpenClaw 官方文档为准，OpenCrab 兼容该格式且不修改基础结构。</li>
+                            <li class="accent-line"><strong class="text-white">元数据与启用</strong>：OpenClaw 有 skill 元数据与「启用门槛」（gating）机制；企业侧可在不改写 SKILL.md 的前提下，通过平台元数据扩展（如 sourceType、approvalStatus、lockedVersion）做治理。</li>
+                        </ul>
+                        <p class="mt-4 text-xs text-slate-500">详见 openclaw 文档与仓库内 skills 示例。</p>
+                    </div>
+
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">技能来源与解析优先级</div>
+                        <ul class="mt-4 space-y-3 text-sm text-slate-300">
+                            <li class="accent-line"><strong class="text-white">Bundled</strong>：随 OpenClaw 发行版内置，位于发行包内固定路径。</li>
+                            <li class="accent-line"><strong class="text-white">Managed</strong>：由平台或 ClawHub 托管，可更新、可发现。</li>
+                            <li class="accent-line"><strong class="text-white">Workspace</strong>：用户工作区目录（如 <code class="text-orange-200">~/.openclaw/workspace/skills/</code>），本地或团队自定义。</li>
+                        </ul>
+                        <p class="mt-4 text-sm text-slate-300">优先级/覆盖：通常 workspace 可覆盖同名技能，其次 managed，再次 bundled；具体解析顺序以 OpenClaw 行为为准。</p>
+                        <div class="mt-4 rounded-2xl border border-orange-400/20 bg-orange-500/10 p-4">
+                            <div class="text-xs font-semibold uppercase tracking-wider text-orange-200">对 OpenCrab 的启示</div>
+                            <p class="mt-2 text-sm text-slate-200">平台以「Approved Skill View」为最终事实；建议解析顺序：工作区私有 &gt; 平台托管官方 &gt; 第三方受管导入。</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 grid gap-6 lg:grid-cols-2">
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">ClawHub 技能目录（技能市场）</div>
+                        <p class="mt-3 text-sm leading-7 text-slate-300">
+                            ClawHub 是 OpenClaw 的 <strong class="text-white">Skill Directory</strong>（技能目录/市场），提供技能的发现、搜索与安装入口。
+                        </p>
+                        <ul class="mt-4 space-y-2 text-sm text-slate-300">
+                            <li class="accent-line">启用 ClawHub 后，agent 可自动搜索并拉取所需技能；用户/管理员可通过 UI 或配置管理「从市场安装」的技能。</li>
+                            <li class="accent-line">安装与启用门槛（install gating）在 Control UI 中有体现，技能列表与启用状态可管理。</li>
+                            <li class="accent-line">企业版不直接依赖公有 ClawHub 作为唯一来源，而是自建「私有技能仓」+ 可选对接 ClawHub 或自托管镜像；审批、版本锁定、灰度由 OpenCrab Skill Manager 负责。</li>
+                        </ul>
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            <a href="https://github.com/openclaw/clawhub" target="_blank" rel="noopener" class="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-orange-400/30">openclaw/clawhub</a>
+                            <a href="https://clawhub.com" target="_blank" rel="noopener" class="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-orange-400/30">clawhub.com</a>
+                        </div>
+                    </div>
+
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">openclaw/skills 归档仓库</div>
+                        <p class="mt-3 text-sm leading-7 text-slate-300">
+                            GitHub 上的 <a href="https://github.com/openclaw/skills" target="_blank" rel="noopener" class="text-orange-300 hover:underline">openclaw/skills</a> 仓库归档 clawhub.com 上技能的<strong class="text-white">全版本</strong>，便于离线使用、审计或自建镜像。
+                        </p>
+                        <p class="mt-3 text-sm text-slate-400">可视为 ClawHub 的「只读、版本化快照」，不替代 ClawHub 的发现与安装流程，但为企业侧做技能来源追溯、版本锁定提供参考。</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 rounded-[28px] border border-green-400/20 bg-green-500/8 p-6">
+                    <div class="text-sm font-semibold text-green-200">对 OpenCrab 技能治理的启示</div>
+                    <ul class="mt-4 space-y-2 text-sm text-slate-300">
+                        <li class="accent-line"><strong class="text-white">复用</strong>：SKILL.md 格式、目录结构、调度与 gating 思路。</li>
+                        <li class="accent-line"><strong class="text-white">企业增强</strong>：审批、私有技能仓、Approved Skill View、版本锁定与灰度、审计；生命周期与对象定义见本仓库 <a href="OpenCarb/OpenCarb-Phase2-Skill-Governance-Spec.md" class="text-orange-300 hover:underline">OpenCarb-Phase2-Skill-Governance-Spec.md</a>（SkillPackage、ApprovedSkillView、导入–审核–发布–回滚）。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="feature-map" class="px-4 py-20 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-10 max-w-3xl">
+                    <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Feature Map &amp; Prioritization</div>
+                    <h2 class="display-font mt-3 text-3xl font-bold text-white">功能地图与优先级</h2>
+                    <p class="mt-3 text-sm text-slate-400">核心体验优先、生态与多端其次；具体以官方路线为准。</p>
+                </div>
+                <div class="grid gap-5 lg:grid-cols-3">
+                    <div class="glass rounded-[28px] p-6 border-orange-400/20">
+                        <div class="text-xs font-semibold uppercase text-orange-200">核心</div>
+                        <ul class="mt-4 space-y-2 text-sm text-slate-300">
+                            <li class="accent-line">Gateway（控制面）</li>
+                            <li class="accent-line">Pi agent（执行）</li>
+                            <li class="accent-line">Session、Channels、Skills、Tools</li>
+                        </ul>
+                    </div>
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-xs font-semibold uppercase text-slate-400">次要</div>
+                        <ul class="mt-4 space-y-2 text-sm text-slate-300">
+                            <li class="accent-line">Control UI、WebChat</li>
+                            <li class="accent-line">macOS / iOS / Android 应用</li>
+                            <li class="accent-line">ClawHub 技能目录</li>
+                        </ul>
+                    </div>
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-xs font-semibold uppercase text-slate-500">探索 / 未来</div>
+                        <ul class="mt-4 space-y-2 text-sm text-slate-400">
+                            <li class="accent-line">以 README / VISION / CHANGELOG 为准</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="product-logic" class="px-4 py-20 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-10 max-w-3xl">
+                    <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Product Logic</div>
+                    <h2 class="display-font mt-3 text-3xl font-bold text-white">产品逻辑与用户旅程</h2>
+                </div>
+                <div class="grid gap-6 lg:grid-cols-2">
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">首次使用（onboard）</div>
+                        <ol class="mt-4 space-y-2 text-sm text-slate-300 list-decimal list-inside">
+                            <li>安装：<code class="text-orange-200">npm install -g openclaw</code> 或从源码 pnpm build</li>
+                            <li><code class="text-orange-200">openclaw onboard --install-daemon</code></li>
+                            <li>配置模型与通道（向导或配置文件）</li>
+                            <li>首次对话（CLI 或 WebChat）</li>
+                        </ol>
+                        <p class="mt-3 text-xs text-slate-500">失败场景：未配置 token、通道未配对等；详见文档与 <code class="text-orange-200">openclaw doctor</code>。</p>
+                    </div>
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">消息与回复</div>
+                        <p class="mt-3 text-sm text-slate-300">用户从某通道发消息 → Gateway → Pi agent（session 可见技能/工具）→ 技能或工具调用 → 回复回通道。群组支持 mention/always 激活、队列与 reply-back。</p>
+                    </div>
+                </div>
+                <div class="mt-6 soft-panel rounded-[28px] p-6">
+                    <div class="text-sm font-semibold text-white">会话状态</div>
+                    <p class="mt-2 text-sm text-slate-300">main 直连会话；群组/频道有独立 session。支持 /reset、/compact、/think 等命令；状态由 Gateway 持久化。</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="ecosystem" class="px-4 py-20 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-10 max-w-3xl">
+                    <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Ecosystem &amp; Operations</div>
+                    <h2 class="display-font mt-3 text-3xl font-bold text-white">生态与运营</h2>
+                    <p class="mt-3 text-sm text-slate-400">开发与贡献、社区与治理、运营与支持、数据与度量、风险与路线图。</p>
+                </div>
+                <div class="space-y-6">
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">开发与贡献</div>
+                        <ul class="mt-3 space-y-1 text-sm text-slate-300">
+                            <li class="accent-line">本地开发：clone → <code class="text-orange-200">pnpm install</code> → <code class="text-orange-200">pnpm build</code> → <code class="text-orange-200">pnpm gateway:watch</code>；Node ≥22</li>
+                            <li class="accent-line">发布频道：stable / beta / dev；<code class="text-orange-200">openclaw update --channel</code></li>
+                            <li class="accent-line">PR/CI：<a href="https://github.com/openclaw/openclaw/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener" class="text-orange-300 hover:underline">CONTRIBUTING</a>、GitHub Actions</li>
+                        </ul>
+                    </div>
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">社区与治理</div>
+                        <p class="mt-3 text-sm text-slate-300">角色：maintainers、contributors、users。沟通：GitHub Issues/PR、<a href="https://discord.gg/openclaw" target="_blank" rel="noopener" class="text-orange-300 hover:underline">Discord</a>、文档。贡献者入门：good first issue、CONTRIBUTING、行为准则（若存在）。</p>
+                    </div>
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">运营与支持</div>
+                        <p class="mt-3 text-sm text-slate-300">支持渠道：GitHub Issues、Discord（社区驱动，无 SLA）。运维：Gateway 以 launchd/systemd 运行；Tailscale/SSH 远程；Docker/Nix 部署；安全与事件见 <a href="https://github.com/openclaw/openclaw/blob/main/SECURITY.md" target="_blank" rel="noopener" class="text-orange-300 hover:underline">SECURITY.md</a>。</p>
+                    </div>
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">数据与度量</div>
+                        <p class="mt-3 text-sm text-slate-300">建议关注：Stars/Forks/Watchers、活跃贡献者、Issue/PR 关闭率、发布频率；CI 状态。数据来源：GitHub API、Release 页面。产品/用户度量以官方是否公开为准。</p>
+                    </div>
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">风险、限制与假设</div>
+                        <ul class="mt-3 space-y-1 text-sm text-slate-300">
+                            <li class="accent-line"><strong class="text-white">风险</strong>：第三方通道政策、模型供应商可用性、沙箱误配置；缓解：文档、<code class="text-orange-200">doctor</code>、默认 DM pairing</li>
+                            <li class="accent-line"><strong class="text-white">限制</strong>：个人/小团队优先，非企业多租户、非统一知识大脑</li>
+                            <li class="accent-line"><strong class="text-white">假设</strong>：用户具备自托管能力、可访问模型 API</li>
+                        </ul>
+                    </div>
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">路线图</div>
+                        <p class="mt-3 text-sm text-slate-300">发布频道：<strong class="text-white">stable</strong>（tagged releases）、<strong class="text-white">beta</strong>（prerelease）、<strong class="text-white">dev</strong>（main 头）。主题见 README/CHANGELOG（多通道、Voice Wake、Canvas、ClawHub、平台应用等）。<a href="https://github.com/openclaw/openclaw/releases" target="_blank" rel="noopener" class="text-orange-300 hover:underline">Releases</a>、<a href="https://github.com/openclaw/openclaw/blob/main/CHANGELOG.md" target="_blank" rel="noopener" class="text-orange-300 hover:underline">CHANGELOG</a>。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="opencrab" class="px-4 py-20 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-12 max-w-3xl">
+                    <div class="text-xs uppercase tracking-[0.22em] text-orange-300">For OpenCrab</div>
+                    <h2 class="display-font mt-3 text-4xl font-bold text-white">对 OpenCrab 的启示</h2>
+                    <p class="mt-4 text-base leading-8 text-slate-300">
+                        开发 Runtime Adapter 与 Session Gateway 时，应明确「复用边界」与「不放入 OpenClaw 本体」的职责划分。
+                    </p>
+                </div>
+
+                <div class="grid gap-6 lg:grid-cols-2">
+                    <div class="rounded-[28px] border border-green-400/20 bg-green-500/8 p-6">
+                        <div class="text-sm font-semibold text-green-200">建议复用</div>
+                        <ul class="mt-4 space-y-2 text-sm text-slate-300">
+                            <li class="accent-line">Session 生命周期管理</li>
+                            <li class="accent-line">ACP 接入方式（stdio、session key 与 gateway 映射）</li>
+                            <li class="accent-line">SKILL.md 规范与技能调度机制</li>
+                            <li class="accent-line">技能发现与安装流程（含 ClawHub）可作私有技能仓设计参考</li>
+                            <li class="accent-line">工具执行与流式输出</li>
+                        </ul>
+                    </div>
+                    <div class="rounded-[28px] border border-blue-400/20 bg-blue-500/8 p-6">
+                        <div class="text-sm font-semibold text-blue-200">由 OpenCrab 控制面实现</div>
+                        <ul class="mt-4 space-y-2 text-sm text-slate-300">
+                            <li class="accent-line">团队工作区与成员管理</li>
+                            <li class="accent-line">企业 RBAC / 审批流</li>
+                            <li class="accent-line">模型路由与成本治理</li>
+                            <li class="accent-line">安全审计与合规日志</li>
+                            <li class="accent-line">企业私有技能仓与发布流程</li>
+                            <li class="accent-line">工作区级知识源权限</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-8 soft-panel rounded-[28px] p-6">
+                    <div class="text-sm font-semibold text-white">延伸阅读（本仓库）</div>
+                    <ul class="mt-4 space-y-2 text-sm text-slate-300">
+                        <li><a href="OpenCarb/OpenCarb-Architecture.md" class="text-orange-300 hover:underline">OpenCarb-Architecture.md</a> — 控制面与执行面分层、工作区与审计边界</li>
+                        <li><a href="OpenCarb/OpenCarb-Runtime-Integration.md" class="text-orange-300 hover:underline">OpenCarb-Runtime-Integration.md</a> — OpenClaw 复用方式与 Runtime Adapter 设计</li>
+                        <li><a href="OpenCarb/OpenCarb-Phase2-Skill-Governance-Spec.md" class="text-orange-300 hover:underline">OpenCarb-Phase2-Skill-Governance-Spec.md</a> — 技能治理：审核、灰度、发布、回滚与 Approved Skill View</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="appendix" class="px-4 py-20 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="mb-10 max-w-3xl">
+                    <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Appendix</div>
+                    <h2 class="display-font mt-3 text-3xl font-bold text-white">附录</h2>
+                </div>
+                <div class="grid gap-6 lg:grid-cols-2">
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">术语表（Glossary）</div>
+                        <ul class="mt-4 space-y-1 text-sm text-slate-300">
+                            <li><strong class="text-white">Gateway</strong> — WebSocket 控制面，连接通道、Pi agent、客户端</li>
+                            <li><strong class="text-white">Pi agent</strong> — RPC 模式 agent 运行时</li>
+                            <li><strong class="text-white">ACP</strong> — Agent Client Protocol，IDE 等 stdio 接入</li>
+                            <li><strong class="text-white">Session / Workspace</strong> — 会话与工作区根目录</li>
+                            <li><strong class="text-white">Skill / ClawHub</strong> — 技能与技能目录（市场）</li>
+                            <li><strong class="text-white">Channel / Node</strong> — 消息通道与设备节点</li>
+                        </ul>
+                    </div>
+                    <div class="glass rounded-[28px] p-6">
+                        <div class="text-sm font-semibold text-orange-200">参考链接</div>
+                        <ul class="mt-4 space-y-2 text-sm text-slate-300">
+                            <li><a href="https://github.com/openclaw/openclaw" target="_blank" rel="noopener" class="text-orange-300 hover:underline">openclaw/openclaw</a> · <a href="https://openclaw.ai" target="_blank" rel="noopener" class="text-orange-300 hover:underline">openclaw.ai</a> · <a href="https://docs.openclaw.ai" target="_blank" rel="noopener" class="text-orange-300 hover:underline">Docs</a></li>
+                            <li><a href="OpenCarb/OpenCarb-Architecture.md" class="text-orange-300 hover:underline">OpenCarb-Architecture</a> · <a href="OpenCarb/OpenCarb-Runtime-Integration.md" class="text-orange-300 hover:underline">Runtime-Integration</a> · <a href="OpenCarb/OpenCarb-Phase2-Skill-Governance-Spec.md" class="text-orange-300 hover:underline">Phase2-Skill-Governance-Spec</a></li>
+                        </ul>
+                        <p class="mt-4 text-xs text-slate-500">文档维护：本页面向 OpenCrab 团队与利益相关者，基于 openclaw 公开文档整理。建议每季度或随大版本复核；Owner 见仓库。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="border-t border-white/10 bg-slate-950/60 px-4 py-8 text-center text-sm text-slate-500 sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-7xl">
+            <p>OpenClaw 架构与产品解读 · 面向产品经理、团队与利益相关者，便于理解产品现状、决策依据与后续计划</p>
+            <p class="mt-1 text-slate-600">内容基于 openclaw/openclaw 公开文档与 OpenCrab 架构说明，不涉及未公开实现细节</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'dark',
+                themeVariables: {
+                    primaryColor: '#0f1a2b',
+                    primaryTextColor: '#e5eef9',
+                    primaryBorderColor: 'rgba(172, 191, 220, 0.3)',
+                    lineColor: 'rgba(172, 191, 220, 0.4)',
+                    secondaryColor: '#132238',
+                    tertiaryColor: 'rgba(255, 122, 26, 0.1)'
+                }
+            });
+
+            var navLinks = document.querySelectorAll('.nav-link');
+            var sections = document.querySelectorAll('section');
+
+            function updateActiveNav() {
+                var current = 'exec-summary';
+                sections.forEach(function(section) {
+                    var top = section.offsetTop;
+                    if (window.scrollY >= top - 180) {
+                        current = section.id;
+                    }
+                });
+                navLinks.forEach(function(link) {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === '#' + current) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+            updateActiveNav();
+            window.addEventListener('scroll', updateActiveNav);
+        });
+    </script>
+</body>
+
+</html>

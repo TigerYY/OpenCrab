@@ -45,7 +45,9 @@
                     <a href="#architecture" class="text-slate-600 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium">架构与功能</a>
                     <a href="#strategy" class="text-slate-600 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium">技术实施策略</a>
                     <a href="#roadmap" class="text-slate-600 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium">路线图</a>
+                    <a href="#readiness" class="text-slate-600 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium">开发准备</a>
                     <a href="#progress" class="text-slate-600 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium">当前进度</a>
+                    <a href="#sync" class="text-slate-600 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium">同步机制</a>
                 </div>
             </div>
         </div>
@@ -177,6 +179,36 @@
                 </div>
             </div>
 
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-3">控制面实现栈</h3>
+                    <ul class="space-y-2 text-sm text-slate-600">
+                        <li><strong>Backend：</strong>NestJS（`/api` 控制面）</li>
+                        <li><strong>Persistence：</strong>PostgreSQL + 文件化 SQL migrations</li>
+                        <li><strong>Queue/Cache：</strong>Redis（可用时入队）+ 内存 fallback</li>
+                        <li><strong>Jobs：</strong>并发、重试、死信、终止控制</li>
+                    </ul>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-3">执行面适配</h3>
+                    <ul class="space-y-2 text-sm text-slate-600">
+                        <li><strong>Runtime Adapter：</strong>ACP createSession / invoke</li>
+                        <li><strong>协议层：</strong>DTO、错误码映射、分层重试</li>
+                        <li><strong>韧性：</strong>ACP 异常自动回退本地 stub</li>
+                        <li><strong>审计：</strong>adapter/fallbackReason 结构化写入</li>
+                    </ul>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-3">可观测与交付</h3>
+                    <ul class="space-y-2 text-sm text-slate-600">
+                        <li><strong>API：</strong>fallback stats / trend / alerts</li>
+                        <li><strong>Console：</strong>窗口、TopN、阈值告警视图</li>
+                        <li><strong>验证：</strong>build / test / smoke / uat 自动化</li>
+                        <li><strong>收口：</strong>关闭评审模板已生成并进入签收</li>
+                    </ul>
+                </div>
+            </div>
+
             <!-- V1 Scope -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
@@ -284,7 +316,7 @@
                             </div>
                             <div class="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
                                 <div class="font-semibold text-white mb-1">OpenCarb 负责裁决</div>
-                                <div class="text-sm text-slate-300">工作区、RBAC、Policy Engine、Audit、Model Proxy、Knowledge Service。</div>
+                                <div class="text-sm text-slate-300">工作区、RBAC、Policy Engine、Audit、Model Router、Knowledge Service。</div>
                             </div>
                             <div class="rounded-xl border border-slate-700 bg-slate-800/70 p-4">
                                 <div class="font-semibold text-white mb-1">中间用适配层解耦</div>
@@ -316,7 +348,7 @@
                         <div class="flex items-start justify-between gap-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
                             <div>
                                 <div class="font-medium text-slate-800">必须自研</div>
-                                <div class="text-slate-600 mt-1">Workspace、RBAC、Policy Engine、Audit、Model Proxy、Knowledge Service、Skill Manager、Web Console</div>
+                                <div class="text-slate-600 mt-1">Workspace、RBAC、Policy Engine、Audit、Model Router、Knowledge Service、Skill Manager、Web Console</div>
                             </div>
                             <span class="shrink-0 px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">Build</span>
                         </div>
@@ -332,7 +364,7 @@
     web-console/
     ide-gateway/
   services/
-    model-proxy/
+    model-router/
     knowledge-service/
     audit-service/
     skill-manager/
@@ -361,7 +393,7 @@
                     <div class="rounded-xl border border-orange-200 bg-orange-50 p-5">
                         <div class="text-xs uppercase tracking-wide text-orange-600 mb-2">Phase B</div>
                         <div class="font-semibold text-slate-800 mb-2">MVP 落地</div>
-                        <div class="text-sm text-slate-600">OpenCarb 独立主仓，接入 Runtime Adapter、Model Proxy、Knowledge Service，跑通部门级最小闭环。</div>
+                        <div class="text-sm text-slate-600">OpenCarb 独立主仓，接入 Runtime Adapter、Model Router、Knowledge Service，跑通部门级最小闭环。</div>
                     </div>
                     <div class="rounded-xl border border-slate-200 bg-slate-50 p-5">
                         <div class="text-xs uppercase tracking-wide text-slate-500 mb-2">Phase C</div>
@@ -383,11 +415,12 @@
                     <h3 class="text-lg font-bold text-slate-800">Phase 0: 产品验证 (当前阶段)</h3>
                     <span class="text-xs font-medium text-slate-500 uppercase tracking-wide">2-4 周</span>
                     <div class="mt-2 bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-                        <p class="text-sm text-slate-600 mb-2">目标：明确试点与 V1 范围，完成架构设计。</p>
+                        <p class="text-sm text-slate-600 mb-2">目标：明确试点与 V1 范围，完成架构设计，并补齐进入开发的文档与排期准备。</p>
                         <div class="flex flex-wrap gap-2">
                             <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded border border-green-200">PRD 完成</span>
                             <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded border border-green-200">架构设计完成</span>
                             <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded border border-green-200">安全边界确认</span>
+                            <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded border border-green-200">开发准备包完成</span>
                         </div>
                     </div>
                 </div>
@@ -401,7 +434,7 @@
                         <p class="text-sm text-slate-600 mb-2">目标：构建部门级团队愿意试用的最小闭环。</p>
                         <ul class="list-disc list-inside text-xs text-slate-600 space-y-1">
                             <li>工作区与会话映射</li>
-                            <li>模型代理与基础路由</li>
+                            <li>Model Router 与基础路由</li>
                             <li>知识索引与问答链路</li>
                             <li>审计记录链路</li>
                             <li>IDE 入口与 Web 管理台上线</li>
@@ -429,11 +462,114 @@
                     </div>
                 </div>
             </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">Phase 0 退出清单</h3>
+                    <p class="text-sm text-slate-600 mb-4">当前结论：Phase 0 与 Phase 1 开发目标均已完成，已进入 Phase 1 签收评审阶段。</p>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            <span class="text-slate-600"><strong>V1 范围收敛：</strong> PRD、V1 范围、系统架构、部署与安全边界文档已形成。</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            <span class="text-slate-600"><strong>分层边界确认：</strong> 已明确 OpenCarb 负责控制面，OpenClaw 负责执行面。</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            <span class="text-slate-600"><strong>部署原则确认：</strong> 已确认内网优先、受控外发、审计独立于 runtime。</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            <span class="text-slate-600"><strong>开发准备包完成：</strong> 已补齐 Phase 1 四件套与 Phase 2 六件套，并纳入文档索引。</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            <span class="text-slate-600"><strong>试点执行确认：</strong> 已完成 UAT 自动执行、关闭评审模板生成与签收人实名落位。</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2">✓</span>
+                            <span class="text-slate-600"><strong>实名执行信息：</strong> DRI、值守联系人与签收人已统一实名到 Tiger Yang。</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-orange-50 rounded-xl shadow-sm border border-orange-100 p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">Phase 2 启动前对齐事项</h3>
+                    <ul class="space-y-3 text-sm text-slate-700">
+                        <li><strong>试点复盘沉淀：</strong> 将 Phase 1 UAT 结果转化为 Phase 2 优先级输入。</li>
+                        <li><strong>治理策略迭代：</strong> 根据 fallback 统计与告警阈值，更新模型与审批策略。</li>
+                        <li><strong>多角色落位：</strong> 由单一责任人模式过渡到多角色分工（PM/Backend/AI/Sec/Platform）。</li>
+                        <li><strong>Phase 2 排期冻结：</strong> 基于现有 six-pack 文档正式冻结 Sprint 范围。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="readiness" class="scroll-mt-20">
+            <h2 class="text-3xl font-bold text-slate-900 mb-6 section-title">开发准备完成度</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-slate-800">Phase 1 准备包</h3>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">4 / 4 已完成</span>
+                    </div>
+                    <ul class="space-y-3 text-sm text-slate-600">
+                        <li><strong>接口契约包：</strong> Session Gateway、Model Router、Knowledge、Audit、Approval、PR Webhook 契约已定义。</li>
+                        <li><strong>试点验收包：</strong> 三个场景 UAT、阈值与签收模板已定义。</li>
+                        <li><strong>运行手册：</strong> 上线、告警、回滚、审批卡单处理流程已定义。</li>
+                        <li><strong>Timeline / RACI：</strong> Sprint 1-3、冻结点、风险 owner 已定义，实名 DRI 已落位。</li>
+                    </ul>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-bold text-slate-800">Phase 2 预备包</h3>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">6 / 6 已完成</span>
+                    </div>
+                    <ul class="space-y-3 text-sm text-slate-600">
+                        <li><strong>需求：</strong> Phase 2 PRD 已明确企业化增强目标、范围与退出条件。</li>
+                        <li><strong>治理设计：</strong> 审批设计、技能治理规范已定义。</li>
+                        <li><strong>平台设计：</strong> 作业编排、指标口径已定义。</li>
+                        <li><strong>研发协同：</strong> PR review 深化集成规范已定义。</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="bg-slate-50 rounded-xl border border-slate-200 p-6 text-sm text-slate-700">
+                当前结论：Phase 1 代码开发、UAT 自动验证与签收资料已齐备，当前处于签收评审完成窗口。
+            </div>
         </section>
 
         <!-- Progress -->
         <section id="progress" class="scroll-mt-20">
             <h2 class="text-3xl font-bold text-slate-900 mb-6 section-title">开发进展</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">Phase 1 执行清单</h3>
+                    <p class="text-sm text-slate-600 mb-4">
+                        Phase 1 backlog 已完成闭环执行，并已通过 UAT 自动化与关闭评审材料生成验证。
+                    </p>
+                    <div class="rounded-lg bg-slate-50 border border-slate-200 p-4 text-sm text-slate-700">
+                        文档路径：<code class="text-orange-700 font-medium">Docs/OpenCarb/OpenCarb-Phase1-Execution-Backlog.md</code> + 4 份开发准备包
+                    </div>
+                    <div class="mt-4 flex items-center gap-2">
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已建立</span>
+                        <span class="text-xs text-slate-500">可作为 Sprint 1-3 的排期输入，待补实名 DRI</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">Phase 2 预备设计骨架（6 份文档）</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                        <div class="rounded-lg bg-white border border-slate-200 p-3 text-slate-700">Phase 2 PRD</div>
+                        <div class="rounded-lg bg-white border border-slate-200 p-3 text-slate-700">Approval Design</div>
+                        <div class="rounded-lg bg-white border border-slate-200 p-3 text-slate-700">Skill Governance Spec</div>
+                        <div class="rounded-lg bg-white border border-slate-200 p-3 text-slate-700">Job Orchestration Spec</div>
+                        <div class="rounded-lg bg-white border border-slate-200 p-3 text-slate-700">Observability Metrics</div>
+                        <div class="rounded-lg bg-white border border-slate-200 p-3 text-slate-700">PR Review Integration Spec</div>
+                    </div>
+                </div>
+            </div>
             <div class="overflow-hidden bg-white shadow-sm border border-slate-200 rounded-xl">
                 <table class="min-w-full divide-y divide-slate-200">
                     <thead class="bg-slate-50">
@@ -482,28 +618,147 @@
                             <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
                             <td class="px-6 py-4 text-slate-500">Arch / PM</td>
                         </tr>
-
-                        <!-- Upcoming Tasks (Pending) -->
-                        <tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-4 font-medium text-slate-900">Phase 1 拆解</td>
+                            <td class="px-6 py-4 text-slate-600">可执行 backlog 文档（Epic / Story / Checklist / DoD）</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">PM / Tech Lead</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
                             <td class="px-6 py-4 font-medium text-slate-900">开发准备</td>
-                            <td class="px-6 py-4 text-slate-600">MVP 任务拆解与排期</td>
-                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-slate-100 text-slate-800">待开始</span></td>
-                            <td class="px-6 py-4 text-slate-500">Tech Lead</td>
+                            <td class="px-6 py-4 text-slate-600">Phase 1 四件套：接口契约、验收包、Runbook、Timeline/RACI</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">PM / Tech Lead</td>
                         </tr>
-                        <tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-4 font-medium text-slate-900">开发准备</td>
+                            <td class="px-6 py-4 text-slate-600">Phase 2 六件套：需求、审批、技能治理、作业、指标、PR review 预备设计</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">PM / Arch</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
                             <td class="px-6 py-4 font-medium text-slate-900">开发 - Phase 1</td>
-                            <td class="px-6 py-4 text-slate-600">工作区服务 (Workspace Service)</td>
-                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-slate-100 text-slate-800">待开始</span></td>
+                            <td class="px-6 py-4 text-slate-600">工程骨架初始化：NestJS 控制面 + React/Vite 管理台 + PostgreSQL/Redis infra</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">Backend / Frontend</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-4 font-medium text-slate-900">开发 - Phase 1</td>
+                            <td class="px-6 py-4 text-slate-600">控制面分层增强：Workspace/Audit/Approval Repository + Knowledge/PR Job 入队</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
                             <td class="px-6 py-4 text-slate-500">Backend</td>
                         </tr>
-                        <tr>
+                        <tr class="bg-green-50/30">
                             <td class="px-6 py-4 font-medium text-slate-900">开发 - Phase 1</td>
-                            <td class="px-6 py-4 text-slate-600">Runtime Adapter & ACP 封装</td>
-                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-slate-100 text-slate-800">待开始</span></td>
+                            <td class="px-6 py-4 text-slate-600">Web 管理台增强：Workspace/Audit/Approval 真联调 + 筛选/分页</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">Frontend / Backend</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-4 font-medium text-slate-900">开发 - Phase 1</td>
+                            <td class="px-6 py-4 text-slate-600">质量基线：接入 Jest + Supertest API 集成测试（health/workspace/audit/approval）</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
                             <td class="px-6 py-4 text-slate-500">Backend</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-4 font-medium text-slate-900">开发 - Phase 1</td>
+                            <td class="px-6 py-4 text-slate-600">Jobs 能力增强：Knowledge/PR Job 查询接口 + 最小 Worker 状态流转</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">Backend</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-4 font-medium text-slate-900">开发 - Phase 1</td>
+                            <td class="px-6 py-4 text-slate-600">可控执行收口：Job 详情/重试/终止 API + Worker 并发/重试/死信记录</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">Backend / Frontend</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-4 font-medium text-slate-900">开发 - Phase 1</td>
+                            <td class="px-6 py-4 text-slate-600">Runtime Adapter 占位接入：Session/Model Router 已串联 OpenClaw 适配层桩实现</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">Backend</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-4 font-medium text-slate-900">开发 - Phase 1</td>
+                            <td class="px-6 py-4 text-slate-600">Runtime Adapter 升级：支持 OpenClaw ACP createSession/invoke 调用与失败自动回退</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">Backend</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-4 font-medium text-slate-900">开发 - Phase 1</td>
+                            <td class="px-6 py-4 text-slate-600">ACP 协议客户端化：请求/响应 DTO、错误码映射与网络/5xx 分层重试策略</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">Backend</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-4 font-medium text-slate-900">开发 - Phase 1</td>
+                            <td class="px-6 py-4 text-slate-600">运行态可观测增强：模型调用写入 runtime audit（adapter/fallbackReason）并在管理台展示</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">Backend / Frontend</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-4 font-medium text-slate-900">开发 - Phase 1</td>
+                            <td class="px-6 py-4 text-slate-600">审计结构化升级：runtimeMeta JSON 落库 + fallbackReason 聚合统计接口</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">Backend</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-4 font-medium text-slate-900">开发 - Phase 1</td>
+                            <td class="px-6 py-4 text-slate-600">可观测面板增强：fallback 时间窗口/TopN 统计 + 按天趋势接口与管理台展示</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">Backend / Frontend</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-4 font-medium text-slate-900">开发 - Phase 1</td>
+                            <td class="px-6 py-4 text-slate-600">运营触发原型：runtime fallback 告警阈值接口 + UAT/关闭评审自动化脚本</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">Backend / PM</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-4 font-medium text-slate-900">开发 - Phase 1</td>
+                            <td class="px-6 py-4 text-slate-600">阶段收口：UAT 执行报告与关闭评审模板已生成，进入签收评审阶段</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">PM / Tech Lead</td>
+                        </tr>
+
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-4 font-medium text-slate-900">Phase 1</td>
+                            <td class="px-6 py-4 text-slate-600">综合结论：开发、自动化验证、UAT 与关闭评审材料均已完成，Phase 1 判定完成</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">Tiger Yang</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 font-medium text-slate-900">Phase 2</td>
+                            <td class="px-6 py-4 text-slate-600">下一阶段：企业化增强排期冻结（通用审批编排、技能治理深化、作业编排与指标体系）</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-slate-100 text-slate-800">待启动</span></td>
+                            <td class="px-6 py-4 text-slate-500">Tiger Yang</td>
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </section>
+
+        <section id="sync" class="scroll-mt-20">
+            <h2 class="text-3xl font-bold text-slate-900 mb-6 section-title">页面持续同步机制</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">后续开发中的同步规则</h3>
+                    <ul class="space-y-3 text-sm text-slate-600">
+                        <li><strong>阶段变更时：</strong> 同步更新路线图状态、开发进展表、下一步任务三处内容。</li>
+                        <li><strong>主文档变更时：</strong> `PRD`、`V1 范围`、`架构`、`部署安全`、`路线图` 任一更新后，48 小时内同步页面关键文案。</li>
+                        <li><strong>执行文档变更时：</strong> `OpenCarb-Phase1-Execution-Backlog.md` 更新后，同步刷新执行 Epic 状态与开发进展表。</li>
+                        <li><strong>同步顺序固定：</strong> 先更新 md 主文档，再更新 `opencrabmvp.html`，最后做一次跨文档口径检查。</li>
+                    </ul>
+                </div>
+
+                <div class="bg-slate-50 rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">术语一致性约束</h3>
+                    <ul class="space-y-3 text-sm text-slate-600">
+                        <li><strong>统一主命名：</strong> 页面中统一使用 `Model Router`，避免和 `Model Proxy` 混用造成理解偏差。</li>
+                        <li><strong>边界统一：</strong> 页面需始终保持“OpenCarb 负责控制面，OpenClaw 负责执行面”的表达。</li>
+                        <li><strong>状态表达统一：</strong> 文档已完成不等于开发已启动，页面需分别展示“文档完成态”和“开发 readiness”。</li>
+                    </ul>
+                </div>
             </div>
         </section>
 

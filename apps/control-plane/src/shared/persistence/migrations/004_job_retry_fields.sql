@@ -1,0 +1,17 @@
+ALTER TABLE knowledge_index_jobs
+  ADD COLUMN IF NOT EXISTS retry_count INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE knowledge_index_jobs
+  ADD COLUMN IF NOT EXISTS max_retries INTEGER NOT NULL DEFAULT 2;
+
+ALTER TABLE knowledge_index_jobs
+  ADD COLUMN IF NOT EXISTS last_error TEXT;
+
+ALTER TABLE pr_review_jobs
+  ADD COLUMN IF NOT EXISTS retry_count INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE pr_review_jobs
+  ADD COLUMN IF NOT EXISTS max_retries INTEGER NOT NULL DEFAULT 2;
+
+ALTER TABLE pr_review_jobs
+  ADD COLUMN IF NOT EXISTS last_error TEXT;

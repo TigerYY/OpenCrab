@@ -1,0 +1,17 @@
+{
+  "name": "opencarb",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:control-plane": "bash scripts/start-control-plane-dev.sh",
+    "dev:web-console": "bash scripts/start-web-console-dev.sh",
+    "build": "npm run build -w @opencarb/control-plane && npm run build -w @opencarb/web-console",
+    "test": "npm run test -w @opencarb/control-plane",
+    "smoke:phase1": "bash scripts/phase1-smoke.sh",
+    "uat:phase1": "bash scripts/phase1-uat.sh",
+    "closeout:phase1": "node scripts/generate-phase1-closeout.mjs"
+  }
+}

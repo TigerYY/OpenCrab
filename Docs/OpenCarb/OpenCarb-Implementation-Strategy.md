@@ -123,7 +123,7 @@
 - Identity / RBAC
 - Policy Engine
 - Audit Service
-- Model Proxy / Model Router
+- Model Router
 - Knowledge Service
 - Skill Manager
 - 审批流与挂起恢复机制
@@ -137,7 +137,7 @@
 | ACP 接入 | 复用 + 封装 | 保留 IDE 集成能力，同时绑定企业身份 |
 | Skills 规范 | 兼容复用 | 沿用生态和现有 skill 结构 |
 | Skill 治理 | 自研 | 企业需要审批、签名、版本锁定 |
-| 模型调用 | 自研代理 | 需要统一路由、脱敏、审计 |
+| 模型调用 | 自研路由层 | 需要统一路由、脱敏、审计 |
 | 知识检索 | 自研服务 | 需要权限过滤和工作区隔离 |
 | 工作区与权限 | 自研 | 企业控制面核心 |
 | 审计与审批 | 自研 | 企业采购关键能力 |
@@ -161,7 +161,7 @@ opencarb/
     web-console/
     ide-gateway/
   services/
-    model-proxy/
+    model-router/
     knowledge-service/
     audit-service/
     skill-manager/
@@ -234,7 +234,7 @@ opencarb/
 重点：
 
 - 工作区管理
-- 模型代理
+- Model Router
 - 知识检索
 - 审计闭环
 - IDE + Web 管理台

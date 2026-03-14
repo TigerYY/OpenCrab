@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🦀 OpenCarb 团队产品白皮书</title>
+    <title>🦀 OpenCrab 团队产品白皮书</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;800&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
     <style>
@@ -123,7 +123,7 @@
             <div class="flex items-center gap-3">
                 <div class="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-xl">🦀</div>
                 <div>
-                    <div class="text-sm uppercase tracking-[0.28em] text-orange-300">OpenCarb</div>
+                    <div class="text-sm uppercase tracking-[0.28em] text-orange-300">OpenCrab</div>
                     <div class="text-sm text-slate-300">团队产品白皮书 / 项目同步页</div>
                 </div>
             </div>
@@ -144,7 +144,7 @@
                 <div class="grid items-start gap-8 lg:grid-cols-[1.25fr_0.75fr]">
                     <div class="glass rounded-[28px] p-8 sm:p-10">
                         <div class="mb-5 inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-500/10 px-4 py-1 text-xs uppercase tracking-[0.22em] text-orange-200">
-                            OpenCarb Whitepaper
+                            OpenCrab Whitepaper
                         </div>
                         <h1 class="display-font max-w-4xl text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl">
                             为部门级与工作组级团队构建
@@ -152,7 +152,7 @@
                             的 AI 助理平台
                         </h1>
                         <p class="mt-6 max-w-3xl text-lg leading-8 text-slate-300">
-                            OpenCarb 基于 OpenClaw 的执行能力构建，但不把企业能力揉进底层 runtime。
+                            OpenCrab 基于 OpenClaw 的执行能力构建，但不把企业能力揉进底层 runtime。
                             它面向真实团队协作场景，优先解决工作区隔离、模型治理、知识检索、技能治理、安全审计与进度同步。
                         </p>
                         <div class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -205,9 +205,9 @@
             <div class="mx-auto max-w-7xl">
                 <div class="mb-12 max-w-3xl">
                     <div class="text-xs uppercase tracking-[0.22em] text-orange-300">System Architecture</div>
-                    <h2 class="display-font mt-3 text-4xl font-bold text-white">OpenCarb 的核心不是新的 Agent，而是企业控制面</h2>
+                    <h2 class="display-font mt-3 text-4xl font-bold text-white">OpenCrab 的核心不是新的 Agent，而是企业控制面</h2>
                     <p class="mt-4 text-base leading-8 text-slate-300">
-                        OpenClaw 负责执行，OpenCarb 负责裁决。系统把身份、工作区、模型路由、知识检索、技能治理和审计策略统一收敛到控制面，避免企业版能力深度侵入上游 runtime。
+                        OpenClaw 负责执行，OpenCrab 负责裁决。系统把身份、工作区、模型路由、知识检索、技能治理和审计策略统一收敛到控制面，避免企业版能力深度侵入上游 runtime。
                     </p>
                 </div>
 
@@ -221,12 +221,12 @@
                         <button class="arch-card rounded-3xl border border-white/10 bg-white/5 p-5 text-left" data-arch="control">
                             <div class="text-xs uppercase tracking-[0.22em] text-slate-400">Layer 02</div>
                             <div class="mt-2 text-xl font-semibold text-white">Control Plane</div>
-                            <div class="mt-2 text-sm text-slate-300">Identity、Workspace、Policy、Audit、Model Router、Skill Manager</div>
+                            <div class="mt-2 text-sm text-slate-300">NestJS + PostgreSQL + Redis：Workspace、Policy、Audit、Jobs、Model Router</div>
                         </button>
                         <button class="arch-card rounded-3xl border border-white/10 bg-white/5 p-5 text-left" data-arch="runtime">
                             <div class="text-xs uppercase tracking-[0.22em] text-slate-400">Layer 03</div>
                             <div class="mt-2 text-xl font-semibold text-white">Execution Plane</div>
-                            <div class="mt-2 text-sm text-slate-300">Runtime Adapter + OpenClaw Runtime，专注执行而不做最终裁决</div>
+                            <div class="mt-2 text-sm text-slate-300">Runtime Adapter + OpenClaw ACP Client，支持 createSession/invoke 与自动回退</div>
                         </button>
                         <button class="arch-card rounded-3xl border border-white/10 bg-white/5 p-5 text-left" data-arch="knowledge">
                             <div class="text-xs uppercase tracking-[0.22em] text-slate-400">Layer 04</div>
@@ -258,16 +258,16 @@
                             <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Control Plane</div>
                             <h3 class="mt-3 text-3xl font-bold text-white">企业能力全部外置</h3>
                             <p class="mt-4 text-sm leading-7 text-slate-300">
-                                OpenCarb 的核心差异化都位于控制面：Identity and RBAC、Workspace Service、Policy Engine、Audit Service、Knowledge Service、Skill Manager 与 Job Orchestrator。
-                                这决定了系统是否能被企业采购、部署和审计。
+                                当前控制面已落地 NestJS 分层实现，关键能力覆盖 Workspace、Model Router、Knowledge/PR Jobs、Audit、Approval 与 Jobs Worker。
+                                底层采用 PostgreSQL 持久化与 Redis 入队，支持失败重试、死信记录、runtime fallback 可观测统计。
                             </p>
                             <div class="mt-6 grid gap-3 sm:grid-cols-2">
                                 <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">统一身份与角色裁决</div>
                                 <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">工作区隔离与资源绑定</div>
                                 <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">模型路由与外发策略</div>
-                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">技能审批、版本锁定与灰度</div>
-                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">审计闭环与追责能力</div>
-                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">审批挂起与恢复作业</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">审计闭环、fallback 结构化元数据与聚合统计</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">审批挂起、恢复/终止与作业状态流转</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">UAT 与关闭评审自动化脚本</div>
                             </div>
                         </div>
 
@@ -275,12 +275,13 @@
                             <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Execution Plane</div>
                             <h3 class="mt-3 text-3xl font-bold text-white">复用 OpenClaw 的执行内核</h3>
                             <p class="mt-4 text-sm leading-7 text-slate-300">
-                                不建议从零重写 runtime，也不建议长期 fork 后深改。推荐通过 Runtime Adapter 接入 OpenClaw Runtime，复用其 session 生命周期、ACP、skill 调度和工具执行机制。
+                                Runtime Adapter 已升级为 ACP 协议客户端模式：createSession / invoke 请求采用 DTO、错误码映射和分层重试。
+                                当上游 ACP 不可达时自动回退到本地 stub，保证控制面主链路可用。
                             </p>
                             <div class="mt-6 rounded-3xl border border-orange-400/20 bg-orange-500/10 p-5">
                                 <div class="text-sm font-semibold text-orange-100">推荐实施原则</div>
                                 <div class="mt-2 text-sm leading-7 text-slate-200">
-                                    OpenClaw 负责执行，OpenCarb 负责裁决。Runtime 只消费控制面下发的 skill 视图、工具白名单和知识结果，不负责最终权限判断。
+                                    OpenClaw 负责执行，OpenCrab 负责裁决。运行时元数据（adapter/fallbackReason）已纳入审计事件，支持阈值告警与趋势追踪。
                                 </div>
                             </div>
                         </div>
@@ -299,6 +300,10 @@
                                 <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
                                     <div class="font-semibold text-white">模型边界</div>
                                     <div class="mt-2 text-sm text-slate-400">默认内网优先，外部模型必须显式配置并经策略控制。</div>
+                                </div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 sm:col-span-2">
+                                    <div class="font-semibold text-white">可观测增强</div>
+                                    <div class="mt-2 text-sm text-slate-400">已提供 fallback stats / trend / alerts 三类接口，并在 Web Console 提供窗口、TopN 与阈值视图。</div>
                                 </div>
                             </div>
                         </div>
@@ -392,7 +397,7 @@
                     <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Implementation Strategy</div>
                     <h2 class="display-font mt-3 text-4xl font-bold text-white">后续开发不是“从头做”，也不是“长期 fork 后深改”</h2>
                     <p class="mt-4 text-base leading-8 text-slate-300">
-                        推荐路线是：短期可基于 OpenClaw clone/fork 做技术验证，正式产品开发切换到独立 OpenCarb 主仓，复用 OpenClaw 作为执行内核，并把企业控制面全部外置。
+                        推荐路线是：短期可基于 OpenClaw clone/fork 做技术验证，正式产品开发切换到独立 OpenCrab 主仓，复用 OpenClaw 作为执行内核，并把企业控制面全部外置。
                     </p>
                 </div>
 
@@ -410,7 +415,7 @@
                     <div class="strategy-card rounded-[28px] border border-orange-400/30 bg-orange-500/10 p-6">
                         <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Recommended</div>
                         <div class="mt-3 text-2xl font-semibold text-white">独立主仓 + 复用内核</div>
-                        <p class="mt-4 text-sm leading-7 text-slate-200">OpenClaw 负责执行，OpenCarb 负责工作区、RBAC、Policy、Audit、Knowledge、Model Router 与 Skill Manager。</p>
+                        <p class="mt-4 text-sm leading-7 text-slate-200">OpenClaw 负责执行，OpenCrab 负责工作区、RBAC、Policy、Audit、Knowledge、Model Router 与 Skill Manager。</p>
                     </div>
                 </div>
 
@@ -442,7 +447,7 @@
                     <div class="soft-panel rounded-[28px] p-7">
                         <div class="text-xs uppercase tracking-[0.22em] text-slate-400">推荐仓库结构</div>
                         <div class="mt-5 rounded-3xl border border-white/10 bg-slate-950/70 p-5 text-sm text-slate-300">
-                            <pre class="overflow-x-auto font-mono leading-7">opencarb/
+                            <pre class="overflow-x-auto font-mono leading-7">opencrab/
   apps/
     control-plane/
     web-console/
@@ -534,8 +539,8 @@
                     <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Project Progress</div>
                     <h2 class="display-font mt-3 text-4xl font-bold text-white">当前开发进展与下一步任务</h2>
                     <p class="mt-4 text-base leading-8 text-slate-300">
-                        当前项目以“文档先行、架构先行、同步先行”为主，已完成产品规划、架构边界、实施策略和 MVP 页面。
-                        下一步将进入任务拆解、工作区服务和 Runtime Adapter 的实际开发。
+                        Phase 1 已完成代码闭环、自动化验证（build/test/smoke/UAT）与关闭评审模板生成。
+                        当前状态为“签收评审完成窗口”，下一步进入 Phase 2 企业化增强排期。
                     </p>
                 </div>
 
@@ -562,23 +567,28 @@
                             </div>
                             <div class="grid grid-cols-[1.2fr_1.8fr_0.8fr] gap-4 px-6 py-4">
                                 <div class="font-medium text-white">技术实施策略</div>
-                                <div class="text-slate-300">明确 OpenClaw 复用边界与 OpenCarb 自研策略</div>
+                                <div class="text-slate-300">明确 OpenClaw 复用边界与 OpenCrab 自研策略</div>
                                 <div><span class="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-200">已完成</span></div>
                             </div>
                             <div class="grid grid-cols-[1.2fr_1.8fr_0.8fr] gap-4 px-6 py-4">
                                 <div class="font-medium text-white">页面同步</div>
-                                <div class="text-slate-300">MVP 仪表盘与白皮书页统一成 OpenCarb 叙事</div>
+                                <div class="text-slate-300">MVP 仪表盘与白皮书页统一成 OpenCrab 叙事</div>
                                 <div><span class="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-200">已完成</span></div>
                             </div>
                             <div class="grid grid-cols-[1.2fr_1.8fr_0.8fr] gap-4 px-6 py-4">
                                 <div class="font-medium text-white">Phase 1 开发准备</div>
-                                <div class="text-slate-300">MVP 任务拆解、接口草图与开发排期</div>
-                                <div><span class="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-200">待开始</span></div>
+                                <div class="text-slate-300">MVP 任务拆解、接口契约、验收包、Runbook、Timeline/RACI</div>
+                                <div><span class="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-200">已完成</span></div>
                             </div>
                             <div class="grid grid-cols-[1.2fr_1.8fr_0.8fr] gap-4 px-6 py-4">
                                 <div class="font-medium text-white">Phase 1 核心开发</div>
-                                <div class="text-slate-300">Workspace Service、Runtime Adapter、Knowledge Service</div>
-                                <div><span class="rounded-full bg-slate-500/15 px-3 py-1 text-xs font-semibold text-slate-300">规划中</span></div>
+                                <div class="text-slate-300">NestJS 控制面、ACP 适配、Jobs/审计可观测、Web Console、UAT/关闭评审自动化</div>
+                                <div><span class="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-200">已完成</span></div>
+                            </div>
+                            <div class="grid grid-cols-[1.2fr_1.8fr_0.8fr] gap-4 px-6 py-4">
+                                <div class="font-medium text-white">Phase 1 签收评审</div>
+                                <div class="text-slate-300">UAT 执行报告与关闭评审文档已生成，签收人已实名落位</div>
+                                <div><span class="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-200">已完成</span></div>
                             </div>
                         </div>
                     </div>
@@ -587,7 +597,7 @@
                         <div class="soft-panel rounded-[28px] p-6">
                             <div class="text-xs uppercase tracking-[0.22em] text-slate-400">当前已完成</div>
                             <div class="mt-5 space-y-3 text-sm text-slate-300">
-                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">OpenCarb PRD</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">OpenCrab PRD</div>
                                 <div class="rounded-2xl border border-white/10 bg-white/5 p-4">系统架构说明</div>
                                 <div class="rounded-2xl border border-white/10 bg-white/5 p-4">V1 范围清单</div>
                                 <div class="rounded-2xl border border-white/10 bg-white/5 p-4">运行时复用方案</div>
@@ -597,11 +607,11 @@
                         </div>
 
                         <div class="soft-panel rounded-[28px] p-6">
-                            <div class="text-xs uppercase tracking-[0.22em] text-slate-400">下一步建议</div>
+                            <div class="text-xs uppercase tracking-[0.22em] text-slate-400">下一步建议（Phase 2）</div>
                             <div class="mt-5 space-y-4 text-sm leading-7 text-slate-300">
-                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">先产出 MVP 任务拆解清单和接口清单。</div>
-                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">随后优先做 Workspace Service、Model Router 和 Knowledge Service 原型。</div>
-                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">最后打通 Runtime Adapter 与 OpenClaw 的最小接入闭环。</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">冻结 Phase 2 范围：通用审批编排、技能治理深化、作业编排增强。</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">将 Phase 1 fallback 可观测数据转化为治理策略与告警阈值。</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">从单一责任人模式过渡到多角色协作（PM/Backend/AI/Sec/Platform）。</div>
                             </div>
                         </div>
                     </div>
@@ -612,7 +622,7 @@
 
     <footer class="border-t border-white/10 bg-slate-950/60 px-4 py-8 text-center text-sm text-slate-500 sm:px-6 lg:px-8">
         <div class="mx-auto max-w-7xl">
-            <p>🦀 OpenCarb 团队产品白皮书 · 面向内部沟通、架构同步与阶段进展追踪</p>
+            <p>🦀 OpenCrab 团队产品白皮书 · 面向内部沟通、架构同步与阶段进展追踪</p>
         </div>
     </footer>
 

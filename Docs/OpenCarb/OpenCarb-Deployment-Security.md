@@ -30,11 +30,11 @@ flowchart TD
     controlPlane --> knowledgeJobs["Knowledge Index Jobs"]
     controlPlane --> auditStore["Audit Store"]
     controlPlane --> approvalStore["Approval Store"]
-    controlPlane --> modelProxy["Model Proxy"]
+    controlPlane --> modelRouter["Model Router"]
     knowledgeJobs --> gitMirror["Git Mirror / Repo Access"]
     knowledgeJobs --> docConnectors["Docs/FAQ Connectors"]
-    modelProxy --> localModels["Local LLM Gateway"]
-    modelProxy --> externalApiProxy["External API Egress Proxy"]
+    modelRouter --> localModels["Local LLM Gateway"]
+    modelRouter --> externalApiProxy["External API Egress Proxy"]
     externalApiProxy --> cloudModels["Cloud Model Providers"]
 ```
 
@@ -54,7 +54,7 @@ flowchart TD
 ### 4.2 模型访问层
 
 - `Local LLM Gateway` 部署在内网。
-- `Model Proxy` 部署在控制面同域，作为唯一模型出口。
+- `Model Router` 部署在控制面同域，作为唯一模型出口。
 - `External API Egress Proxy` 独立部署，便于统一审计与域名限制。
 
 ### 4.3 接入层
@@ -108,11 +108,11 @@ flowchart TD
 
 ## 6. 模型访问安全边界
 
-### 6.1 统一模型代理
+### 6.1 统一模型路由
 
-所有模型请求必须走 `Model Proxy`，禁止 runtime 直接访问模型 API。
+所有模型请求必须走 `Model Router`，禁止 runtime 直接访问模型 API。
 
-`Model Proxy` 职责：
+`Model Router` 职责：
 
 - 路由到内网或外部模型。
 - 应用脱敏规则。
@@ -238,7 +238,7 @@ flowchart TD
 
 - 默认所有代码问答和文档问答走内网模型。
 - 对复杂分析类请求开放审批后外部模型回退。
-- 所有外发统一经过 `Model Proxy + Egress Proxy + Audit Store`。
+- 所有外发统一经过 `Model Router + Egress Proxy + Audit Store`。
 - 不开放第三方技能自由安装。
 
 ## 14. 结论
