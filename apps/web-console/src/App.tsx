@@ -659,7 +659,7 @@ export function App() {
   return (
     <main className="page">
       <section className="card">
-        <h1>🦀 OpenCarb Phase 1 Console</h1>
+        <h1>🦀 OpenCrab Phase 1 Console</h1>
         <p>管理台已连接控制面 API，可直接验证 Workspace、Audit、Approval 的主链路。</p>
         <div className="toolbar">
           <label>

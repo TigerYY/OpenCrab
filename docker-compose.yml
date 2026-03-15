@@ -1,23 +1,23 @@
 # OpenCrab 标准部署模板（Phase 3 E1）
 # 启动顺序：postgres -> redis -> control-plane -> web-console
 # 使用：docker compose up -d && docker compose ps
-version: "3.9"
+# 注：Compose V2 不再使用 version 字段，已移除以避免警告
 
 services:
   postgres:
     image: postgres:16
-    container_name: opencarb-postgres
+    container_name: opencrab-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: opencarb
-      POSTGRES_PASSWORD: opencarb
-      POSTGRES_DB: opencarb
+      POSTGRES_USER: opencrab
+      POSTGRES_PASSWORD: opencrab
+      POSTGRES_DB: opencrab
     ports:
       - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U opencarb -d opencarb"]
+      test: ["CMD-SHELL", "pg_isready -U opencrab -d opencrab"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -25,7 +25,7 @@ services:
 
   redis:
     image: redis:7
-    container_name: opencarb-redis
+    container_name: opencrab-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -41,7 +41,7 @@ services:
     build:
       context: ./apps/control-plane
       dockerfile: Dockerfile
-    container_name: opencarb-control-plane
+    container_name: opencrab-control-plane
     restart: unless-stopped
     depends_on:
       postgres:
@@ -50,7 +50,7 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://opencarb:opencarb@postgres:5432/opencarb
+      DATABASE_URL: postgresql://opencrab:opencrab@postgres:5432/opencrab
       REDIS_URL: redis://redis:6379
     ports:
       - "3000:3000"
@@ -67,7 +67,7 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: http://localhost:3000/api
-    container_name: opencarb-web-console
+    container_name: opencrab-web-console
     restart: unless-stopped
     depends_on:
       control-plane:

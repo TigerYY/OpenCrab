@@ -32,4 +32,4 @@ echo "[web-console] selected port: ${PORT_TO_USE}"
 echo "[web-console] url: http://localhost:${PORT_TO_USE}"
 
 cd "${ROOT_DIR}"
-npm run dev -w @opencarb/web-console -- --host 0.0.0.0 --port "${PORT_TO_USE}"
+npm run dev -w @opencrab/web-console -- --host 0.0.0.0 --port "${PORT_TO_USE}"

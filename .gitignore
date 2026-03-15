@@ -14,6 +14,7 @@
 *.log
 *.tmp
 .cache/
+*.dump
 
 # Node.js
 node_modules/

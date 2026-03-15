@@ -2,6 +2,8 @@ import { Injectable, OnModuleDestroy, OnModuleInit } from "@nestjs/common";
 import { RedisClientType, createClient } from "redis";
 
 const DEFAULT_REDIS_URL = "redis://localhost:6379";
+const CONNECT_RETRIES = 3;
+const CONNECT_RETRY_DELAY_MS = 2000;
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
@@ -9,14 +11,26 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private connected = false;
 
   async onModuleInit() {
-    try {
-      this.client = createClient({
-        url: process.env.REDIS_URL ?? DEFAULT_REDIS_URL
-      });
-      await this.client.connect();
-      this.connected = true;
-    } catch {
-      this.connected = false;
+    const url = process.env.REDIS_URL ?? DEFAULT_REDIS_URL;
+    for (let attempt = 1; attempt <= CONNECT_RETRIES; attempt++) {
+      const c = createClient({ url });
+      try {
+        await c.connect();
+        this.client = c;
+        this.connected = true;
+        return;
+      } catch {
+        try {
+          await c.quit();
+        } catch {
+          /* ignore */
+        }
+        if (attempt < CONNECT_RETRIES) {
+          await new Promise((r) => setTimeout(r, CONNECT_RETRY_DELAY_MS));
+        } else {
+          this.connected = false;
+        }
+      }
     }
   }
 

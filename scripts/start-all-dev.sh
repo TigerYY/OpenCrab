@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 一键启动开发环境：postgres + redis -> control-plane -> web-console
 # 使用：./scripts/start-all-dev.sh  或  npm run dev:all
-# 可选：SKIP_DOCKER=1 跳过 Docker，仅启动 control-plane 与 web-console
+# 可选：SKIP_DOCKER=1 跳过 Docker；RUN_SMOKE=1 启动后自动执行 Phase2 冒烟
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -29,8 +29,8 @@ if [ "${SKIP_DOCKER}" != "1" ]; then
     while [ "${waited}" -lt "${WAIT_HEALTH_TIMEOUT}" ]; do
       pg_ok=""
       redis_ok=""
-      pg_ok=$(docker inspect --format '{{.State.Health.Status}}' opencarb-postgres 2>/dev/null) || true
-      redis_ok=$(docker inspect --format '{{.State.Health.Status}}' opencarb-redis 2>/dev/null) || true
+      pg_ok=$(docker inspect --format '{{.State.Health.Status}}' opencrab-postgres 2>/dev/null) || true
+      redis_ok=$(docker inspect --format '{{.State.Health.Status}}' opencrab-redis 2>/dev/null) || true
       if [ "${pg_ok}" = "healthy" ] && [ "${redis_ok}" = "healthy" ]; then
         echo "[start-all-dev] Postgres 与 Redis 已就绪"
         break
@@ -49,7 +49,7 @@ else
 fi
 
 # 开发环境使用本地 DB/Redis（与 docker-compose 暴露的端口一致）
-export DATABASE_URL="${DATABASE_URL:-postgresql://opencarb:opencarb@localhost:5432/opencarb}"
+export DATABASE_URL="${DATABASE_URL:-postgresql://opencrab:opencrab@localhost:5432/opencrab}"
 export REDIS_URL="${REDIS_URL:-redis://localhost:6379}"
 
 # ---------- 2. 启动 Control Plane ----------
@@ -79,6 +79,15 @@ while [ "${waited}" -lt 45 ]; do
 done
 if [ "${waited}" -ge 45 ]; then
   echo "[start-all-dev] 警告: Control Plane 未在 45s 内返回 200，请检查日志"
+fi
+# 就绪后校验 DB/Redis 状态并提示
+health_json=$(curl -sS --connect-timeout 2 "http://127.0.0.1:${CONTROL_PLANE_PORT}/api/health" 2>/dev/null) || true
+if [ -n "${health_json}" ]; then
+  pg_status=$(echo "${health_json}" | grep -o '"postgres":"[^"]*"' | cut -d'"' -f4)
+  redis_status=$(echo "${health_json}" | grep -o '"redis":"[^"]*"' | cut -d'"' -f4)
+  if [ "${pg_status}" = "fallback" ] || [ "${redis_status}" = "fallback" ]; then
+    echo "[start-all-dev] 提示: Postgres 或 Redis 未连接（health 为 fallback），部分 API 可能不可用；请确认已执行 docker compose up -d postgres redis 并处于 healthy。"
+  fi
 fi
 echo ""
 
@@ -112,6 +121,16 @@ echo "=============================================="
 echo "  停止方式：按 Ctrl+C 将同时停止 Control Plane 与 Web Console"
 echo "  或手动: kill ${CP_PID} ${WC_PID}"
 echo "=============================================="
+
+if [ "${RUN_SMOKE:-0}" = "1" ]; then
+  echo "[start-all-dev] RUN_SMOKE=1，执行 Phase2 冒烟..."
+  if CONTROL_PLANE_URL="http://localhost:${CONTROL_PLANE_PORT}" npm run smoke:phase2 2>&1; then
+    echo "[start-all-dev] Phase2 冒烟 PASS"
+  else
+    echo "[start-all-dev] 警告: Phase2 冒烟未通过，请检查 API"
+  fi
+  echo ""
+fi
 
 cleanup() {
   echo ""

@@ -10,7 +10,7 @@ const headerSet = {
   "X-Channel-Type": "web"
 };
 
-describe("OpenCarb control-plane e2e", () => {
+describe("OpenCrab control-plane e2e", () => {
   let app: INestApplication;
   const prevAcpBaseUrl = process.env.OPENCLAW_ACP_BASE_URL;
 
@@ -45,7 +45,7 @@ describe("OpenCarb control-plane e2e", () => {
     const response = await request(app.getHttpServer()).get("/api/health");
     expect(response.status).toBe(200);
     expect(response.body.code).toBe("OK");
-    expect(response.body.data.service).toBe("opencarb-control-plane");
+    expect(response.body.data.service).toBe("opencrab-control-plane");
   });
 
   it("workspace create/list flow works", async () => {

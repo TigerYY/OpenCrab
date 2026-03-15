@@ -6,11 +6,11 @@ const now = new Date().toISOString();
 
 const uatReportPath = resolve(
   root,
-  "Docs/OpenCarb/OpenCarb-Phase1-UAT-Execution-Report.md"
+  "Docs/OpenCrab/OpenCrab-Phase1-UAT-Execution-Report.md"
 );
 const closeoutPath = resolve(
   root,
-  "Docs/OpenCarb/OpenCarb-Phase1-Closeout-Review.md"
+  "Docs/OpenCrab/OpenCrab-Phase1-Closeout-Review.md"
 );
 
 const hasUatReport = existsSync(uatReportPath);
@@ -18,7 +18,7 @@ const uatSummary = hasUatReport
   ? readFileSync(uatReportPath, "utf8").slice(0, 400)
   : "UAT report not found.";
 
-const content = `# OpenCarb Phase 1 关闭评审（自动模板）
+const content = `# OpenCrab Phase 1 关闭评审（自动模板）
 
 - 生成时间: ${now}
 - 生成方式: scripts/generate-phase1-closeout.mjs

@@ -32,29 +32,42 @@ OpenCrab 基于 **OpenClaw** 的执行能力构建，面向**部门级与工作�
 | [产品规划白皮书（HTML）](Docs/OpenCrab企业版产品规划.html) | 定位、架构、模块、实施策略、路线图与进展（推荐在浏览器中打开） |
 | [MVP 仪表盘](Docs/opencrabmvp.html) | 阶段目标与里程碑概览 |
 | [OpenClaw 架构与产品解读（HTML）](Docs/OpenClaw-Architecture-Overview.html) | 上游 OpenClaw 技术架构、产品框架与产品思路，便于理解 Runtime Adapter 设计 |
-| [Docs/OpenCarb](Docs/OpenCarb/) | 详细设计文档：PRD、V1 范围、架构、Runtime 集成、部署安全、路线图等 |
+| [Docs/OpenCrab](Docs/OpenCrab/) | 详细设计文档：PRD、V1 范围、架构、Runtime 集成、部署安全、路线图等 |
+| [AGENTS.md](AGENTS.md) | 仓库规则（AI Coding）：任务粒度、修改边界、必读文档、同步顺序 |
 
 ## 推荐阅读顺序
 
 1. [产品规划白皮书](Docs/OpenCrab企业版产品规划.html) — 建立整体认知  
-2. [OpenCrab-PRD](Docs/OpenCarb/OpenCarb-PRD.md) — 产品需求与边界  
-3. [OpenCrab-V1-Scope](Docs/OpenCarb/OpenCarb-V1-Scope.md) — V1 必做与不做  
-4. [OpenCrab-Architecture](Docs/OpenCarb/OpenCarb-Architecture.md) — 系统分层与控制面  
+2. [OpenCrab-PRD](Docs/OpenCrab/OpenCrab-PRD.md) — 产品需求与边界  
+3. [OpenCrab-V1-Scope](Docs/OpenCrab/OpenCrab-V1-Scope.md) — V1 必做与不做  
+4. [OpenCrab-Architecture](Docs/OpenCrab/OpenCrab-Architecture.md) — 系统分层与控制面  
 
 ## 当前阶段
 
 - **Phase 0**：文档与架构已完成  
 - **Phase 1**：已完成（控制面 + 管理台 + UAT 与签收评审）  
-- **Phase 2**：已完成（审批治理、技能治理、作业编排、可观测、PR Review 深化与生产化工程），待签收后进入 Phase 3 规划  
+- **Phase 2**：已完成（审批治理、技能治理、作业编排、可观测、PR Review 深化与生产化工程），进入签收窗口  
+- **Phase 3**：已启动；E1 部署模板与 E2 团队模板 MVP 已交付；后续为技能仓与跨团队复用  
+- **后续路线**：已规划至 Phase 7（组织级治理、运营与质量平台、企业入口与生态、平台化与商业基础），详见 [OpenCrab-Roadmap](Docs/OpenCrab/OpenCrab-Roadmap.md) 与 [OpenCrab-Longterm-Roadmap](Docs/OpenCrab/OpenCrab-Longterm-Roadmap.md)  
 
-## 本地启动（Phase 1）
+## 本地启动
+
+**推荐：一键启动**（自动起 postgres/redis、control-plane、web-console）
+
+```bash
+npm run dev:all
+```
+
+可选：`SKIP_DOCKER=1` 跳过 Docker；`RUN_SMOKE=1` 启动后自动执行 Phase2 冒烟。详见 [OpenCrab-Deployment-Template](Docs/OpenCrab/OpenCrab-Deployment-Template.md)。若此前使用过旧拼写 opencarb 的容器/数据库，重新部署前请按部署模板中的「从 opencarb 迁移到 opencrab」一节操作。
+
+**分步启动（Phase 1）**
 
 ```bash
 # 1) 安装依赖
 npm install
 
 # 2) 启动基础依赖（PostgreSQL + Redis）
-docker compose up -d
+docker compose up -d postgres redis
 
 # 3) 启动控制面 API（默认 http://localhost:3000/api，端口被占用会自动顺延）
 npm run dev:control-plane
@@ -128,6 +141,7 @@ npm run closeout:phase1
 - 支持按天聚合趋势（`/api/audit/runtime-fallback-trend`）
 - 支持按阈值触发原型告警查询（`/api/audit/runtime-fallback-alerts`）
 - **Phase 2**：审批策略配置、超时单视图、批量审批；Skills 页（导入/审核/批准/灰度/发布/回滚、Approved Skill View）；Dead Letters 支持 Retry/Replay/Ignore/Terminate；Observability 页（采纳/质量/治理/平台四类指标 + Runtime Fallback）；本地启动支持 `npm run smoke:phase2`。
+- **Phase 3**：Templates 页（从当前工作区创建模板、从模板创建工作区、模板列表）。
 
 后端当前能力（NestJS）：
 
@@ -145,7 +159,7 @@ npm run closeout:phase1
   - 控制面：`docker build -f apps/control-plane/Dockerfile apps/control-plane`
   - 管理台：`docker build -f apps/web-console/Dockerfile apps/web-console`
 - **健康检查**：控制面提供 `GET /api/health`，可用于 readiness/liveness 探测；部署时需配置 `DATABASE_URL`、`REDIS_URL`（可选）等环境变量。
-- **Phase 3 部署模板**：`docker compose up -d --build` 可一键拉起 postgres、redis、control-plane、web-console（启动顺序与健康检查见 [OpenCarb-Deployment-Template](Docs/OpenCarb/OpenCarb-Deployment-Template.md)）。
+- **Phase 3 部署模板**：`docker compose up -d --build` 可一键拉起 postgres、redis、control-plane、web-console（启动顺序与健康检查见 [OpenCrab-Deployment-Template](Docs/OpenCrab/OpenCrab-Deployment-Template.md)）。本地开发可选用 `npm run dev:all` 一键启动；Control Plane 已支持 Postgres/Redis 连接重试与 health 中 DB 状态展示。
 
 ## 仓库结构（当前）
 

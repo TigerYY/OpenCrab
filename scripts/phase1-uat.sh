@@ -3,14 +3,14 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 BASE_URL="${BASE_URL:-http://localhost:3000}"
-REPORT_PATH="${ROOT_DIR}/Docs/OpenCarb/OpenCarb-Phase1-UAT-Execution-Report.md"
+REPORT_PATH="${ROOT_DIR}/Docs/OpenCrab/OpenCrab-Phase1-UAT-Execution-Report.md"
 NOW="$(date '+%Y-%m-%d %H:%M:%S')"
 
 echo "[UAT] Phase 1 smoke checks"
-bash "${ROOT_DIR}/scripts/phase1-smoke.sh" > /tmp/opencarb-phase1-smoke.log
+bash "${ROOT_DIR}/scripts/phase1-smoke.sh" > /tmp/opencrab-phase1-smoke.log
 
 echo "[UAT] Phase 1 integration tests"
-npm run test -w @opencarb/control-plane > /tmp/opencarb-phase1-test.log
+npm run test -w @opencrab/control-plane > /tmp/opencrab-phase1-test.log
 
 echo "[UAT] Runtime fallback alerts snapshot"
 ALERT_SNAPSHOT="$(curl -sS -H "Content-Type: application/json" \
@@ -20,7 +20,7 @@ ALERT_SNAPSHOT="$(curl -sS -H "Content-Type: application/json" \
   "${BASE_URL}/api/audit/runtime-fallback-alerts?workspaceId=ws_default&windowMinutes=60&threshold=1")"
 
 cat > "${REPORT_PATH}" <<EOF
-# OpenCarb Phase 1 UAT 执行报告
+# OpenCrab Phase 1 UAT 执行报告
 
 - 执行时间: ${NOW}
 - 执行人: 待补充

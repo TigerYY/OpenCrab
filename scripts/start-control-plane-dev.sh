@@ -14,4 +14,4 @@ echo "[control-plane] selected port: ${PORT_TO_USE}"
 echo "[control-plane] url: http://localhost:${PORT_TO_USE}/api"
 
 cd "${ROOT_DIR}"
-PORT="${PORT_TO_USE}" npm run start:dev -w @opencarb/control-plane
+PORT="${PORT_TO_USE}" npm run start:dev -w @opencrab/control-plane

@@ -16,7 +16,7 @@ export class HealthController {
       code: "OK",
       message: "success",
       data: {
-        service: "opencarb-control-plane",
+        service: "opencrab-control-plane",
         status: "up",
         postgres: this.postgresService.isConnected() ? "connected" : "fallback",
         redis: this.redisService.isConnected() ? "connected" : "fallback"

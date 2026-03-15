@@ -3,7 +3,9 @@ import { readdir, readFile } from "fs/promises";
 import { join } from "path";
 import { Pool, QueryResultRow } from "pg";
 
-const DEFAULT_PG_URL = "postgresql://opencarb:opencarb@localhost:5432/opencarb";
+const DEFAULT_PG_URL = "postgresql://opencrab:opencrab@localhost:5432/opencrab";
+const CONNECT_RETRIES = 3;
+const CONNECT_RETRY_DELAY_MS = 2000;
 
 @Injectable()
 export class PostgresService implements OnModuleInit, OnModuleDestroy {
@@ -13,12 +15,19 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
   async onModuleInit() {
     const connectionString = process.env.DATABASE_URL ?? DEFAULT_PG_URL;
     this.pool = new Pool({ connectionString });
-    try {
-      await this.pool.query("SELECT 1");
-      this.connected = true;
-      await this.runMigrations();
-    } catch {
-      this.connected = false;
+    for (let attempt = 1; attempt <= CONNECT_RETRIES; attempt++) {
+      try {
+        await this.pool.query("SELECT 1");
+        this.connected = true;
+        await this.runMigrations();
+        return;
+      } catch {
+        if (attempt < CONNECT_RETRIES) {
+          await new Promise((r) => setTimeout(r, CONNECT_RETRY_DELAY_MS));
+        } else {
+          this.connected = false;
+        }
+      }
     }
   }
 
