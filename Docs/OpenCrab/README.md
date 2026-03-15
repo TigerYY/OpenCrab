@@ -35,9 +35,9 @@
 | `OpenCrab-Phase3-Operations-Manual.md` | Phase 3 运营手册：新团队开通步骤、策略包导出/导入、检查清单与回滚 |
 | `OpenCrab-Deployment-Template.md` | Phase 3 E1 标准部署模板：compose 编排、健康检查、部署说明与常见问题 |
 | `OpenCrab-Longterm-Roadmap.md` | 12-18 个月战略总览：能力域地图、Phase 与能力域映射、近程/中远程优先级 |
-| `OpenCrab-Phase4-Execution-Backlog.md` | Phase 4 组织级治理可执行看板（骨架） |
+| `OpenCrab-Phase4-Execution-Backlog.md` | Phase 4 团队复制与轻治理可执行看板（骨架） |
 | `OpenCrab-Phase4-Interface-Contract-Pack.md` | Phase 4 接口契约方向（骨架） |
-| `OpenCrab-Phase5-Execution-Backlog.md` | Phase 5 运营与质量平台可执行看板（骨架） |
+| `OpenCrab-Phase5-Execution-Backlog.md` | Phase 5 质量闭环与采纳增长可执行看板（骨架） |
 | `OpenCrab-Engineering-Playbook.md` | 1–3 人 AI Coding 团队工程手册：治理骨架、三层方法、DoD/验证/回滚 |
 | `OpenCrab-Change-Checklist.md` | 变更检查清单：提交前检查、文档同步触发条件、PR 说明模板 |
 | `OpenCrab-Task-Template.md` | 单次开发任务卡模板，适配 AI IDE 执行 |
