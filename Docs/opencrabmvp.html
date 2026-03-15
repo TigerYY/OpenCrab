@@ -445,7 +445,7 @@
                 <!-- Phase 2 -->
                 <div class="relative pl-8">
                     <div class="absolute -left-[9px] top-0 w-4 h-4 bg-amber-500 rounded-full border-2 border-white"></div>
-                    <h3 class="text-lg font-bold text-slate-800">Phase 2: 企业化增强 (当前阶段)</h3>
+                    <h3 class="text-lg font-bold text-slate-800">Phase 2: 企业化增强（开发完成）</h3>
                     <span class="text-xs font-medium text-slate-500 uppercase tracking-wide">6-10 周</span>
                     <div class="mt-2 bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
                         <p class="text-sm text-slate-600 mb-2">目标：审批治理、技能治理、作业编排、可观测与 PR Review 深化，及生产化工程。</p>
@@ -466,7 +466,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                     <h3 class="text-lg font-bold text-slate-800 mb-4">Phase 0 退出清单</h3>
-                    <p class="text-sm text-slate-600 mb-4">当前结论：Phase 0 与 Phase 1 已完成，Phase 1 签收评审已通过，Phase 2 开发已启动。</p>
+                    <p class="text-sm text-slate-600 mb-4">当前结论：Phase 0 与 Phase 1 已完成，Phase 2 开发已完成（审批治理、技能治理、作业编排、可观测、PR Review 深化与生产化），进入签收/运营窗口，后续规划 Phase 3。</p>
                     <ul class="space-y-3 text-sm">
                         <li class="flex items-start">
                             <span class="text-green-500 mr-2">✓</span>
@@ -536,7 +536,7 @@
                 </div>
             </div>
             <div class="bg-slate-50 rounded-xl border border-slate-200 p-6 text-sm text-slate-700">
-                当前结论：Phase 1 代码开发、UAT 自动验证与签收资料已齐备，当前处于签收评审完成窗口。
+                当前结论：Phase 1 与 Phase 2 代码开发与交付物已齐备；Phase 2 冒烟脚本（phase2-smoke）、关闭评审文档（OpenCarb-Phase2-Closeout-Review）已就绪，当前处于 Phase 2 签收/运营窗口。
             </div>
         </section>
 
@@ -727,10 +727,28 @@
                             <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
                             <td class="px-6 py-4 text-slate-500">Tiger Yang</td>
                         </tr>
-                        <tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-4 font-medium text-slate-900">开发 - Phase 2</td>
+                            <td class="px-6 py-4 text-slate-600">审批策略 CRUD、超时视图、批量审批；技能治理全生命周期与 Approved Skill View；死信持久化与 retry/replay/ignore/terminate、作业 resume</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">Backend / Frontend</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-4 font-medium text-slate-900">开发 - Phase 2</td>
+                            <td class="px-6 py-4 text-slate-600">可观测：四类指标 API（adoption/quality/governance/platform）+ Observability 看板；PR Review configs/results 与分级</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">Backend / Frontend</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
+                            <td class="px-6 py-4 font-medium text-slate-900">开发 - Phase 2</td>
+                            <td class="px-6 py-4 text-slate-600">生产化：CI（ci.yml）、control-plane/web-console Dockerfile、phase2-smoke、关闭评审文档</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
+                            <td class="px-6 py-4 text-slate-500">DevOps / PM</td>
+                        </tr>
+                        <tr class="bg-green-50/30">
                             <td class="px-6 py-4 font-medium text-slate-900">Phase 2</td>
-                            <td class="px-6 py-4 text-slate-600">下一阶段：企业化增强排期冻结（通用审批编排、技能治理深化、作业编排与指标体系）</td>
-                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-slate-100 text-slate-800">待启动</span></td>
+                            <td class="px-6 py-4 text-slate-600">综合结论：企业化增强开发与交付物已完成，进入签收/运营窗口，后续规划 Phase 3</td>
+                            <td class="px-6 py-4"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">已完成</span></td>
                             <td class="px-6 py-4 text-slate-500">Tiger Yang</td>
                         </tr>
                     </tbody>

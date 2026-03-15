@@ -45,7 +45,7 @@ OpenCrab 基于 **OpenClaw** 的执行能力构建，面向**部门级与工作�
 
 - **Phase 0**：文档与架构已完成  
 - **Phase 1**：已完成（控制面 + 管理台 + UAT 与签收评审）  
-- **Phase 2**：已启动（审批治理、技能治理、作业编排、可观测、PR Review 深化与生产化工程）  
+- **Phase 2**：已完成（审批治理、技能治理、作业编排、可观测、PR Review 深化与生产化工程），待签收后进入 Phase 3 规划  
 
 ## 本地启动（Phase 1）
 
@@ -113,6 +113,7 @@ npm run closeout:phase1
 - `POST /api/integrations/pr-review/jobs/:jobId/retry`
 - `POST /api/integrations/pr-review/jobs/:jobId/terminate`
 - `GET /api/jobs/dead-letters`
+- **Phase 2 新增**：`GET/POST /api/approval-policies`、`GET/PATCH/DELETE /api/approval-policies/:policyId`、`GET /api/approvals/timeout`、`POST /api/approvals/batch-decision`、`GET /api/approvals?workspaceId&status`、`GET /api/approvals/:ticketId`；`GET/POST /api/skills/packages`、`GET /api/skills/packages/:skillId`、`POST .../review|approve|canary|release|rollback`、`GET /api/skills/approved-view`；`POST /api/jobs/dead-letters/:taskKey/retry|replay|ignore|terminate`、`POST /api/knowledge/index-jobs/:jobId/resume`、`POST /api/integrations/pr-review/jobs/:jobId/resume`；`GET /api/metrics/adoption|quality|governance|platform`；`GET/POST /api/integrations/pr-review/configs`、`GET/PATCH/DELETE .../configs/:configId`、`GET /api/integrations/pr-review/results`。
 
 管理台当前能力（React/Vite）：
 
@@ -126,6 +127,7 @@ npm run closeout:phase1
 - 支持按时间窗口 + TopN 的 `fallbackReason` 聚合统计（`/api/audit/runtime-fallback-stats`）
 - 支持按天聚合趋势（`/api/audit/runtime-fallback-trend`）
 - 支持按阈值触发原型告警查询（`/api/audit/runtime-fallback-alerts`）
+- **Phase 2**：审批策略配置、超时单视图、批量审批；Skills 页（导入/审核/批准/灰度/发布/回滚、Approved Skill View）；Dead Letters 支持 Retry/Replay/Ignore/Terminate；Observability 页（采纳/质量/治理/平台四类指标 + Runtime Fallback）；本地启动支持 `npm run smoke:phase2`。
 
 后端当前能力（NestJS）：
 
@@ -134,6 +136,7 @@ npm run closeout:phase1
 - 内置最小 worker：支持并发上限、失败重试（最大重试次数）和死信记录
 - Runtime Adapter（OpenClaw 适配层）已升级为 ACP 协议客户端（DTO/错误码/重试）并接入 Session/Model Router 主链路
 - 已接入 API 级集成测试（health/workspace/audit/approval 主链路）
+- **Phase 2**：ApprovalPolicy CRUD、审批超时与批量决策；Skills 模块全生命周期与 Approved Skill View；死信持久化与 retry/replay/ignore/terminate、作业 resume；Metrics 四类指标；PR Review configs CRUD 与 results 分级。
 
 ## 生产化与交付（Phase 2）
 

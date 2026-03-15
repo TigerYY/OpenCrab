@@ -29,6 +29,8 @@
 | `OpenCarb-Phase2-Execution-Backlog.md` | Phase 2 可执行看板：API 契约、迁移计划与任务拆解 |
 | `OpenCarb-Phase2-Closeout-Review.md` | Phase 2 关闭评审模板与验收结论 |
 
+Phase 2 代码与交付物已就绪，详见 `OpenCarb-Phase2-Execution-Backlog.md` 与 `OpenCarb-Phase2-Closeout-Review.md`。
+
 ## 参考：上游项目
 
 | 资源 | 说明 |

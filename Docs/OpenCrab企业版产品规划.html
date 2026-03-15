@@ -173,8 +173,8 @@
                             </div>
                             <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
                                 <div class="text-xs uppercase tracking-[0.2em] text-slate-400">当前阶段</div>
-                                <div class="mt-2 text-lg font-semibold text-white">Phase 0</div>
-                                <div class="mt-1 text-sm text-slate-400">文档与架构完成</div>
+                                <div class="mt-2 text-lg font-semibold text-white">Phase 2 签收窗口</div>
+                                <div class="mt-1 text-sm text-slate-400">企业化增强开发完成，待签收后规划 Phase 3</div>
                             </div>
                         </div>
                     </div>
@@ -479,7 +479,7 @@
                     <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Roadmap</div>
                     <h2 class="display-font mt-3 text-4xl font-bold text-white">从试点验证到规模化复制的四阶段路线</h2>
                     <p class="mt-4 text-base leading-8 text-slate-300">
-                        路线设计遵循“先证明单团队价值，再扩展治理与生态”的原则。当前项目处于 Phase 0，重点是收敛范围、完成架构和同步页面。
+                        路线设计遵循“先证明单团队价值，再扩展治理与生态”的原则。Phase 0、Phase 1、Phase 2 均已完成；当前处于 Phase 2 签收/运营窗口，下一步规划 Phase 3 规模化复制。
                     </p>
                 </div>
 
@@ -491,19 +491,19 @@
                         <div class="mt-6 h-2 rounded-full bg-white/10 metric-bar"><span style="width: 100%"></span></div>
                         <div class="mt-3 text-xs text-green-100">当前阶段 / 已完成主要文档</div>
                     </div>
-                    <div class="progress-card rounded-[28px] border border-white/10 bg-white/5 p-6">
-                        <div class="text-xs uppercase tracking-[0.22em] text-slate-400">Phase 1</div>
+                    <div class="progress-card rounded-[28px] border border-green-400/30 bg-green-500/10 p-6">
+                        <div class="text-xs uppercase tracking-[0.22em] text-green-200">Phase 1</div>
                         <div class="mt-3 text-2xl font-semibold text-white">最小闭环</div>
-                        <div class="mt-4 text-sm leading-7 text-slate-400">工作区、模型接入、知识索引、审计闭环、轻量 PR review 和最小审批。</div>
-                        <div class="mt-6 h-2 rounded-full bg-white/10 metric-bar"><span style="width: 0%"></span></div>
-                        <div class="mt-3 text-xs text-slate-500">尚未启动，待开发排期</div>
+                        <div class="mt-4 text-sm leading-7 text-slate-200">工作区、模型接入、知识索引、审计闭环、轻量 PR review 和最小审批。</div>
+                        <div class="mt-6 h-2 rounded-full bg-white/10 metric-bar"><span style="width: 100%"></span></div>
+                        <div class="mt-3 text-xs text-green-100">已完成</div>
                     </div>
-                    <div class="progress-card rounded-[28px] border border-white/10 bg-white/5 p-6">
-                        <div class="text-xs uppercase tracking-[0.22em] text-slate-400">Phase 2</div>
+                    <div class="progress-card rounded-[28px] border border-green-400/30 bg-green-500/10 p-6">
+                        <div class="text-xs uppercase tracking-[0.22em] text-green-200">Phase 2</div>
                         <div class="mt-3 text-2xl font-semibold text-white">企业化增强</div>
-                        <div class="mt-4 text-sm leading-7 text-slate-400">通用审批、增强技能治理、异步任务、质量与成本看板。</div>
-                        <div class="mt-6 h-2 rounded-full bg-white/10 metric-bar"><span style="width: 0%"></span></div>
-                        <div class="mt-3 text-xs text-slate-500">规划中</div>
+                        <div class="mt-4 text-sm leading-7 text-slate-200">通用审批与超时/批量、技能治理、死信与 resume、四类指标与 Observability、PR Review 配置与分级、CI/容器化。</div>
+                        <div class="mt-6 h-2 rounded-full bg-white/10 metric-bar"><span style="width: 100%"></span></div>
+                        <div class="mt-3 text-xs text-green-100">开发完成 / 签收窗口</div>
                     </div>
                     <div class="progress-card rounded-[28px] border border-white/10 bg-white/5 p-6">
                         <div class="text-xs uppercase tracking-[0.22em] text-slate-400">Phase 3</div>
@@ -539,8 +539,7 @@
                     <div class="text-xs uppercase tracking-[0.22em] text-orange-300">Project Progress</div>
                     <h2 class="display-font mt-3 text-4xl font-bold text-white">当前开发进展与下一步任务</h2>
                     <p class="mt-4 text-base leading-8 text-slate-300">
-                        Phase 1 已完成代码闭环、自动化验证（build/test/smoke/UAT）与关闭评审模板生成。
-                        当前状态为“签收评审完成窗口”，下一步进入 Phase 2 企业化增强排期。
+                        Phase 1 与 Phase 2 均已完成代码闭环与交付物。Phase 2 已实现：审批策略与超时/批量审批、技能治理全生命周期与 Approved Skill View、作业死信持久化与 retry/replay/ignore/terminate 及 knowledge/pr resume、四类指标（adoption/quality/governance/platform）与 Observability 看板、PR Review 配置与分级、CI 与容器化及 phase2-smoke/关闭评审文档。当前状态为 Phase 2 签收/运营窗口，下一步规划 Phase 3。
                     </p>
                 </div>
 
@@ -590,6 +589,11 @@
                                 <div class="text-slate-300">UAT 执行报告与关闭评审文档已生成，签收人已实名落位</div>
                                 <div><span class="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-200">已完成</span></div>
                             </div>
+                            <div class="grid grid-cols-[1.2fr_1.8fr_0.8fr] gap-4 px-6 py-4">
+                                <div class="font-medium text-white">Phase 2 企业化增强</div>
+                                <div class="text-slate-300">审批策略/超时/批量、技能治理、死信与 resume、四类指标与 Observability、PR Review configs/results、CI/容器化与 phase2-smoke</div>
+                                <div><span class="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-200">已完成</span></div>
+                            </div>
                         </div>
                     </div>
 
@@ -607,10 +611,10 @@
                         </div>
 
                         <div class="soft-panel rounded-[28px] p-6">
-                            <div class="text-xs uppercase tracking-[0.22em] text-slate-400">下一步建议（Phase 2）</div>
+                            <div class="text-xs uppercase tracking-[0.22em] text-slate-400">下一步建议（Phase 3）</div>
                             <div class="mt-5 space-y-4 text-sm leading-7 text-slate-300">
-                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">冻结 Phase 2 范围：通用审批编排、技能治理深化、作业编排增强。</div>
-                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">将 Phase 1 fallback 可观测数据转化为治理策略与告警阈值。</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">Phase 2 签收与运营：执行 phase2-smoke、关闭评审确认，收口企业化增强交付。</div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">规划 Phase 3：基于 Phase 2 可观测与治理能力，确定规模化复制与多团队扩展优先级。</div>
                                 <div class="rounded-2xl border border-white/10 bg-white/5 p-4">从单一责任人模式过渡到多角色协作（PM/Backend/AI/Sec/Platform）。</div>
                             </div>
                         </div>
