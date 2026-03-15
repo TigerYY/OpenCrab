@@ -54,7 +54,15 @@ type JobItem = {
   lastError?: string;
   queue?: "knowledge.index" | "pr.review";
 };
-type ConsoleTab = "workspace" | "audit" | "approval" | "skills" | "jobs" | "observability";
+type WorkspaceTemplate = {
+  templateId: string;
+  name: string;
+  sourceWorkspaceId: string;
+  optionsJson: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+};
+type ConsoleTab = "workspace" | "audit" | "approval" | "skills" | "jobs" | "observability" | "templates";
 type AdoptionMetrics = { wau: number; workspaceAdoptionRate: number; pilotRetention: number };
 type QualityMetrics = {
   answerSatisfaction: number;
@@ -205,6 +213,10 @@ export function App() {
   const [statsTopN, setStatsTopN] = useState(5);
   const [alertWindowMinutes, setAlertWindowMinutes] = useState(60);
   const [alertThreshold, setAlertThreshold] = useState(3);
+  const [templates, setTemplates] = useState<WorkspaceTemplate[]>([]);
+  const [createFromTemplateId, setCreateFromTemplateId] = useState("");
+  const [createFromTemplateName, setCreateFromTemplateName] = useState("");
+  const [newTemplateName, setNewTemplateName] = useState("");
 
   const summary = useMemo(
     () => ({
@@ -286,7 +298,8 @@ export function App() {
         dls,
         fallbackStats,
         fallbackTrend,
-        fallbackAlerts
+        fallbackAlerts,
+        templatesResp
       ] =
         await Promise.all([
         api<Workspace[]>("/workspaces", { method: "GET" }, workspaceId),
@@ -369,6 +382,11 @@ export function App() {
             `/audit/runtime-fallback-alerts?workspaceId=${encodeURIComponent(workspaceId)}&windowMinutes=${alertWindowMinutes}&threshold=${alertThreshold}`,
             { method: "GET" },
             workspaceId
+          ),
+          api<WorkspaceTemplate[]>(
+            "/workspace-templates",
+            { method: "GET" },
+            workspaceId
           )
         ]);
       setWorkspaces(Array.isArray(ws) ? ws : []);
@@ -416,6 +434,7 @@ export function App() {
           ? fallbackAlerts
           : null
       );
+      setTemplates(Array.isArray(templatesResp) ? templatesResp : []);
       setMessage("数据已刷新");
     } catch (error) {
       setMessage(`刷新失败: ${(error as Error).message}`);
@@ -699,6 +718,12 @@ export function App() {
           onClick={() => setTab("observability")}
         >
           Observability
+        </button>
+        <button
+          className={tab === "templates" ? "tab active" : "tab"}
+          onClick={() => setTab("templates")}
+        >
+          Templates
         </button>
       </section>
 
@@ -1287,6 +1312,107 @@ export function App() {
               下一页
             </button>
           </div>
+        </section>
+      ) : null}
+
+      {tab === "templates" ? (
+        <section className="card">
+          <h2>团队模板</h2>
+          <h3>从当前工作区创建模板</h3>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!newTemplateName.trim()) {
+                setMessage("请输入模板名称");
+                return;
+              }
+              try {
+                await api<WorkspaceTemplate>("/workspace-templates", {
+                  method: "POST",
+                  body: JSON.stringify({
+                    name: newTemplateName.trim(),
+                    sourceWorkspaceId: workspaceId
+                  })
+                }, workspaceId);
+                setNewTemplateName("");
+                setMessage("模板已创建");
+                await refreshAll();
+              } catch (err) {
+                setMessage(`创建模板失败: ${(err as Error).message}`);
+              }
+            }}
+            className="form"
+          >
+            <input
+              value={newTemplateName}
+              onChange={(e) => setNewTemplateName(e.target.value)}
+              placeholder="模板名称"
+            />
+            <button type="submit">创建模板</button>
+          </form>
+          <h3>从模板创建工作区</h3>
+          <p className="text-sm text-slate-600">选择模板并输入新工作区名称。</p>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!createFromTemplateId || !createFromTemplateName.trim()) {
+                setMessage("请选择模板并输入工作区名称");
+                return;
+              }
+              try {
+                await api<Workspace>(
+                  "/workspaces/from-template",
+                  {
+                    method: "POST",
+                    body: JSON.stringify({
+                      templateId: createFromTemplateId,
+                      name: createFromTemplateName.trim()
+                    })
+                  },
+                  workspaceId
+                );
+                setCreateFromTemplateName("");
+                setCreateFromTemplateId("");
+                setMessage("工作区已创建");
+                await refreshAll();
+              } catch (err) {
+                setMessage(`创建失败: ${(err as Error).message}`);
+              }
+            }}
+            className="form"
+          >
+            <label>
+              模板:
+              <select
+                value={createFromTemplateId}
+                onChange={(e) => setCreateFromTemplateId(e.target.value)}
+              >
+                <option value="">— 选择 —</option>
+                {templates.map((t) => (
+                  <option key={t.templateId} value={t.templateId}>
+                    {t.name} ({t.templateId})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <input
+              value={createFromTemplateName}
+              onChange={(e) => setCreateFromTemplateName(e.target.value)}
+              placeholder="新工作区名称"
+            />
+            <button type="submit">从模板创建工作区</button>
+          </form>
+          <h3>模板列表</h3>
+          <ul>
+            {templates.map((t) => (
+              <li key={t.templateId}>
+                <code>{t.templateId}</code> - {t.name} (来源: {t.sourceWorkspaceId})
+              </li>
+            ))}
+            {templates.length === 0 ? (
+              <li className="text-slate-500">暂无模板（需 DB；可在当前工作区下创建模板后在此选择）</li>
+            ) : null}
+          </ul>
         </section>
       ) : null}
 

@@ -28,8 +28,13 @@
 | `OpenCarb-Phase2-PR-Review-Integration-Spec.md` | Phase 2 PR review 集成规范：规则、模板、回写与审计归档 |
 | `OpenCarb-Phase2-Execution-Backlog.md` | Phase 2 可执行看板：API 契约、迁移计划与任务拆解 |
 | `OpenCarb-Phase2-Closeout-Review.md` | Phase 2 关闭评审模板与验收结论 |
+| `OpenCarb-Phase3-Execution-Backlog.md` | Phase 3 可执行看板：部署模板、团队模板、技能仓、跨团队复用 |
+| `OpenCarb-Phase3-Interface-Contract-Pack.md` | Phase 3 接口契约：模板 API、策略导出/导入、技能仓 API |
+| `OpenCarb-Phase3-Pilot-Acceptance-Pack.md` | Phase 3 试点验收包：新团队开通、模板与技能仓验收场景 |
+| `OpenCarb-Phase3-Execution-Timeline-RACI.md` | Phase 3 排期与责任分工：Sprint 1-4、RACI、DRI、冻结点 |
+| `OpenCarb-Deployment-Template.md` | Phase 3 E1 标准部署模板：compose 编排、健康检查、部署说明与常见问题 |
 
-Phase 2 代码与交付物已就绪，详见 `OpenCarb-Phase2-Execution-Backlog.md` 与 `OpenCarb-Phase2-Closeout-Review.md`。
+Phase 2 代码与交付物已就绪，详见 `OpenCarb-Phase2-Execution-Backlog.md` 与 `OpenCarb-Phase2-Closeout-Review.md`。Phase 3 启动包已产出，满足准入后可进入排期。
 
 ## 参考：上游项目
 
@@ -51,6 +56,8 @@ Phase 2 代码与交付物已就绪，详见 `OpenCarb-Phase2-Execution-Backlog.
 10. `OpenCarb-Phase2-Approval-Design.md`、`OpenCarb-Phase2-Skill-Governance-Spec.md`
 11. `OpenCarb-Phase2-Job-Orchestration-Spec.md`、`OpenCarb-Phase2-Observability-Metrics-Definition.md`
 12. `OpenCarb-Phase2-PR-Review-Integration-Spec.md`
+13. `OpenCarb-Phase3-Execution-Backlog.md`、`OpenCarb-Phase3-Interface-Contract-Pack.md`
+14. `OpenCarb-Phase3-Pilot-Acceptance-Pack.md`、`OpenCarb-Phase3-Execution-Timeline-RACI.md`
 
 ## 下一步建议
 
@@ -60,3 +67,4 @@ Phase 2 代码与交付物已就绪，详见 `OpenCarb-Phase2-Execution-Backlog.
 - 基于 `OpenCarb-Phase1-Execution-Backlog.md` 导入 Jira / Linear 并启动 Sprint 排期  
 - 基于 Phase 1 四件套补齐实名 DRI、试点团队与实际时间窗口  
 - 基于 Phase 2 六件套决定企业化增强的进入条件与优先级  
+- 完成 Phase 2 签收后，基于 Phase 3 启动包（Backlog、接口契约、验收包、RACI）进入规模化复制排期  

@@ -163,6 +163,16 @@
 2. 再完成 `Phase 1` 的最小问答与审计闭环。
 3. 只有当试点团队形成正反馈后，再进入审批、技能仓和多团队复制。
 
-## 10. 结论
+## 10. Phase 2 签收与进入 Phase 3 准入条件
+
+Phase 2 开发已完成，进入签收/运营窗口。进入 Phase 3 前需满足：
+
+1. **签收闭环**：Phase 2 关闭评审（`OpenCarb-Phase2-Closeout-Review.md`）已获产品/技术签收。
+2. **回归可用**：执行 `npm run smoke:phase2`（需先启动 control-plane）可重复通过。
+3. **交付物齐备**：Phase 3 启动包（Backlog、接口契约、验收标准、RACI/DRI）已产出或已排期。
+
+详见 `OpenCarb-Phase2-Closeout-Review.md` 第 4 节。
+
+## 11. 结论
 
 `OpenCarb` 的路线图应坚持“小范围试点、强治理优先、渐进扩展”的策略。产品价值会先体现在单团队的知识问答、代码评审和新人 onboarding 上，然后再逐步扩展到技能生态和更复杂的企业工作流。

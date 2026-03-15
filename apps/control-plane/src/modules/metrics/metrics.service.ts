@@ -11,12 +11,9 @@ export class MetricsService {
     return this.repository.getAdoptionMetrics(workspaceId, f, t);
   }
 
-  async getQuality(workspaceId: string, _from?: string, _to?: string) {
-    return {
-      answerSatisfaction: 0,
-      knowledgeHitRate: 0,
-      prReviewSignalAccuracy: 0
-    };
+  async getQuality(workspaceId: string, from?: string, to?: string) {
+    const [f, t] = this.defaultWindow(from, to);
+    return this.repository.getQualityMetrics(workspaceId, f, t);
   }
 
   async getGovernance(workspaceId: string, from?: string, to?: string) {

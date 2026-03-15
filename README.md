@@ -145,6 +145,7 @@ npm run closeout:phase1
   - 控制面：`docker build -f apps/control-plane/Dockerfile apps/control-plane`
   - 管理台：`docker build -f apps/web-console/Dockerfile apps/web-console`
 - **健康检查**：控制面提供 `GET /api/health`，可用于 readiness/liveness 探测；部署时需配置 `DATABASE_URL`、`REDIS_URL`（可选）等环境变量。
+- **Phase 3 部署模板**：`docker compose up -d --build` 可一键拉起 postgres、redis、control-plane、web-console（启动顺序与健康检查见 [OpenCarb-Deployment-Template](Docs/OpenCarb/OpenCarb-Deployment-Template.md)）。
 
 ## 仓库结构（当前）
 

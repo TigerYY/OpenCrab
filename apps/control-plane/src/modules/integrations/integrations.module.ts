@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 
 import { JobsModule } from "../jobs/jobs.module";
 import { IntegrationsController } from "./integrations.controller";
@@ -8,13 +8,14 @@ import { IntegrationsRepository } from "./integrations.repository";
 import { IntegrationsService } from "./integrations.service";
 
 @Module({
-  imports: [JobsModule],
+  imports: [forwardRef(() => JobsModule)],
   controllers: [IntegrationsController],
   providers: [
     IntegrationsService,
     IntegrationsRepository,
     PrReviewConfigService,
     PrReviewConfigRepository
-  ]
+  ],
+  exports: [IntegrationsService]
 })
 export class IntegrationsModule {}

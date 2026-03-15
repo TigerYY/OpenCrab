@@ -26,3 +26,45 @@ jobs:
 
       - name: Test
         run: npm run test
+
+  phase2-smoke:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Start control-plane
+        run: |
+          node apps/control-plane/dist/main.js &
+          echo $! > .cp.pid
+          for i in $(seq 1 30); do
+            if curl -sS -o /dev/null -w "%{http_code}" http://localhost:3000/api/health | grep -q 200; then
+              echo "control-plane ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "control-plane failed to become ready"
+          exit 1
+
+      - name: Run Phase 2 smoke
+        run: npm run smoke:phase2
+
+      - name: Stop control-plane
+        if: always()
+        run: |
+          if [ -f .cp.pid ]; then
+            kill $(cat .cp.pid) 2>/dev/null || true
+          fi

@@ -14,6 +14,7 @@ import { MetricsModule } from "./metrics/metrics.module";
 import { ModelRouterModule } from "./model-router/model-router.module";
 import { SessionModule } from "./session/session.module";
 import { WorkspaceModule } from "./workspace/workspace.module";
+import { WorkspaceTemplatesModule } from "./workspace-templates/workspace-templates.module";
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { WorkspaceModule } from "./workspace/workspace.module";
     PersistenceModule,
     HealthModule,
     WorkspaceModule,
+    WorkspaceTemplatesModule,
     SessionModule,
     ModelRouterModule,
     JobsModule,

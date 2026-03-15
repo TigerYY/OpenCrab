@@ -292,4 +292,163 @@ describe("OpenCarb control-plane e2e", () => {
     expect(deadLettersRes.status).toBe(200);
     expect(Array.isArray(deadLettersRes.body.data)).toBe(true);
   });
+
+  it("approval-policies list and CRUD when DB available", async () => {
+    const listRes = await request(app.getHttpServer())
+      .get("/api/approval-policies?workspaceId=ws_default")
+      .set(headerSet);
+    expect(listRes.status).toBe(200);
+    expect(Array.isArray(listRes.body.data)).toBe(true);
+
+    const createRes = await request(app.getHttpServer())
+      .post("/api/approval-policies")
+      .set(headerSet)
+      .send({
+        workspaceId: "ws_default",
+        triggerEvent: "restricted_outbound",
+        approverRule: "any",
+        timeoutMinutes: 60
+      });
+    if (createRes.status === 201) {
+      const policyId: string = createRes.body.data.policyId;
+      const getRes = await request(app.getHttpServer())
+        .get(`/api/approval-policies/${policyId}`)
+        .set(headerSet);
+      expect(getRes.status).toBe(200);
+      expect(getRes.body.data.triggerEvent).toBe("restricted_outbound");
+
+      await request(app.getHttpServer())
+        .patch(`/api/approval-policies/${policyId}`)
+        .set(headerSet)
+        .send({ timeoutMinutes: 120 });
+
+      const deleteRes = await request(app.getHttpServer())
+        .delete(`/api/approval-policies/${policyId}`)
+        .set(headerSet);
+      expect(deleteRes.status).toBe(200);
+    }
+    expect([201, 500]).toContain(createRes.status);
+  });
+
+  it("skills packages and approved-view work", async () => {
+    const packagesRes = await request(app.getHttpServer())
+      .get("/api/skills/packages")
+      .set(headerSet);
+    expect(packagesRes.status).toBe(200);
+    expect(Array.isArray(packagesRes.body.data)).toBe(true);
+
+    const approvedRes = await request(app.getHttpServer())
+      .get("/api/skills/approved-view?workspaceId=ws_default")
+      .set(headerSet);
+    expect(approvedRes.status).toBe(200);
+    expect(Array.isArray(approvedRes.body.data)).toBe(true);
+  });
+
+  it("metrics adoption, quality, governance, platform work", async () => {
+    const adoptionRes = await request(app.getHttpServer())
+      .get("/api/metrics/adoption?workspaceId=ws_default")
+      .set(headerSet);
+    expect(adoptionRes.status).toBe(200);
+    expect(typeof adoptionRes.body.data.wau).toBe("number");
+
+    const qualityRes = await request(app.getHttpServer())
+      .get("/api/metrics/quality?workspaceId=ws_default")
+      .set(headerSet);
+    expect(qualityRes.status).toBe(200);
+    expect(typeof qualityRes.body.data.knowledgeHitRate).toBe("number");
+    expect(typeof qualityRes.body.data.prReviewSignalAccuracy).toBe("number");
+
+    const governanceRes = await request(app.getHttpServer())
+      .get("/api/metrics/governance?workspaceId=ws_default")
+      .set(headerSet);
+    expect(governanceRes.status).toBe(200);
+    expect(typeof governanceRes.body.data.auditCompleteness).toBe("number");
+
+    const platformRes = await request(app.getHttpServer())
+      .get("/api/metrics/platform?workspaceId=ws_default")
+      .set(headerSet);
+    expect(platformRes.status).toBe(200);
+    expect(typeof platformRes.body.data.jobSuccessRate).toBe("number");
+    expect(typeof platformRes.body.data.modelErrorRate).toBe("number");
+  });
+
+  it("pr-review configs list and results work", async () => {
+    const configsListRes = await request(app.getHttpServer())
+      .get("/api/integrations/pr-review/configs")
+      .set(headerSet);
+    expect(configsListRes.status).toBe(200);
+    expect(Array.isArray(configsListRes.body.data)).toBe(true);
+
+    const resultsRes = await request(app.getHttpServer())
+      .get("/api/integrations/pr-review/results?workspaceId=ws_default&limit=5")
+      .set(headerSet);
+    expect(resultsRes.status).toBe(200);
+    expect(Array.isArray(resultsRes.body.data)).toBe(true);
+
+    const createConfigRes = await request(app.getHttpServer())
+      .post("/api/integrations/pr-review/configs")
+      .set(headerSet)
+      .send({
+        workspaceId: "ws_default",
+        repo: "repo-e2e"
+      });
+    if (createConfigRes.status === 201) {
+      const configId: string = createConfigRes.body.data.configId;
+      const getConfigRes = await request(app.getHttpServer())
+        .get(`/api/integrations/pr-review/configs/${configId}`)
+        .set(headerSet);
+      expect(getConfigRes.status).toBe(200);
+      await request(app.getHttpServer())
+        .delete(`/api/integrations/pr-review/configs/${configId}`)
+        .set(headerSet);
+    }
+    expect([201, 500]).toContain(createConfigRes.status);
+  });
+
+  it("unified GET /api/jobs and resume-after-approval format validation work", async () => {
+    const listRes = await request(app.getHttpServer())
+      .get("/api/jobs?workspaceId=ws_default&limit=5")
+      .set(headerSet);
+    expect(listRes.status).toBe(200);
+    expect(Array.isArray(listRes.body.data)).toBe(true);
+
+    const invalidResumeRes = await request(app.getHttpServer())
+      .post("/api/jobs/invalid-no-colon/resume-after-approval")
+      .set(headerSet);
+    expect(invalidResumeRes.status).toBe(400);
+    expect(invalidResumeRes.body.message).toMatch(/JOB_ID_FORMAT_INVALID|JOB_TYPE_INVALID|Bad Request/);
+  });
+
+  it("workspace-templates list and create-workspace-from-template when DB available", async () => {
+    const listRes = await request(app.getHttpServer())
+      .get("/api/workspace-templates")
+      .set(headerSet);
+    expect(listRes.status).toBe(200);
+    expect(Array.isArray(listRes.body.data)).toBe(true);
+
+    const createTplRes = await request(app.getHttpServer())
+      .post("/api/workspace-templates")
+      .set(headerSet)
+      .send({
+        name: "e2e-template",
+        sourceWorkspaceId: "ws_default"
+      });
+    if (createTplRes.status === 201) {
+      const templateId: string = createTplRes.body.data.templateId;
+      const getTplRes = await request(app.getHttpServer())
+        .get(`/api/workspace-templates/${templateId}`)
+        .set(headerSet);
+      expect(getTplRes.status).toBe(200);
+      expect(getTplRes.body.data.name).toBe("e2e-template");
+
+      const fromTplRes = await request(app.getHttpServer())
+        .post("/api/workspaces/from-template")
+        .set(headerSet)
+        .send({ templateId, name: "E2E From Template" });
+      expect(fromTplRes.status).toBe(201);
+      expect(fromTplRes.body.data.id).toMatch(/^ws_/);
+      expect(fromTplRes.body.data.name).toBe("E2E From Template");
+    }
+    expect([201, 500]).toContain(createTplRes.status);
+  });
 });

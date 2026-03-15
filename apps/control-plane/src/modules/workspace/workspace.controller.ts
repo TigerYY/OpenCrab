@@ -1,11 +1,17 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Req } from "@nestjs/common";
+import { Request } from "express";
 
 import { CreateWorkspaceDto } from "./dto/create-workspace.dto";
+import { CreateWorkspaceFromTemplateDto } from "./dto/create-workspace-from-template.dto";
 import { WorkspaceService } from "./workspace.service";
+import { WorkspaceTemplatesService } from "../workspace-templates/workspace-templates.service";
 
 @Controller("workspaces")
 export class WorkspaceController {
-  constructor(private readonly workspaceService: WorkspaceService) {}
+  constructor(
+    private readonly workspaceService: WorkspaceService,
+    private readonly workspaceTemplatesService: WorkspaceTemplatesService
+  ) {}
 
   @Get()
   async list() {
@@ -16,12 +22,21 @@ export class WorkspaceController {
     };
   }
 
-  @Get(":workspaceId")
-  async getById(@Param("workspaceId") workspaceId: string) {
+  @Post("from-template")
+  async createFromTemplate(
+    @Req() req: Request,
+    @Body() body: CreateWorkspaceFromTemplateDto
+  ) {
+    const workspace = await this.workspaceTemplatesService.createWorkspaceFromTemplate(
+      body.templateId,
+      body.name,
+      body.overrides
+    );
     return {
       code: "OK",
       message: "success",
-      data: await this.workspaceService.getById(workspaceId)
+      data: workspace,
+      traceId: req.requestContext?.traceId ?? "unknown"
     };
   }
 
@@ -31,6 +46,15 @@ export class WorkspaceController {
       code: "OK",
       message: "success",
       data: await this.workspaceService.create(body)
+    };
+  }
+
+  @Get(":workspaceId")
+  async getById(@Param("workspaceId") workspaceId: string) {
+    return {
+      code: "OK",
+      message: "success",
+      data: await this.workspaceService.getById(workspaceId)
     };
   }
 }
