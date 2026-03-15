@@ -16,26 +16,31 @@
 |------|------|------|------|
 | GET | `/api/workspace-templates` | 模板列表（query: workspaceId 可选） | 已实现 |
 | POST | `/api/workspace-templates` | 创建模板（body: name, sourceWorkspaceId, options 可选） | 已实现 |
-| GET | `/api/workspace-templates/:templateId` | 模板详情 | 已实现 |
-| POST | `/api/workspace-templates/:templateId/create-workspace` | 从模板创建工作区（body: name, overrides 可选） | 已实现 |
-| POST | `/api/workspaces/from-template` | 从模板创建工作区（body: templateId, name, overrides 可选） | 已实现 |
+| GET | `/api/workspace-templates/:templateId` | 模板详情（含 approvalPoliciesCount、prReviewConfigsCount 摘要） | 已实现 |
+| POST | `/api/workspace-templates/:templateId/create-workspace` | 从模板创建工作区（body: name, overrides 可选）；新工作区自动复制源工作区审批策略与 PR Review 配置 | 已实现 |
+| POST | `/api/workspaces/from-template` | 从模板创建工作区（body: templateId, name, overrides 可选）；同上，复制策略与配置 | 已实现 |
 
-## 4. 策略包导出/导入（规划）
+从模板创建工作区时，控制面会自源工作区（sourceWorkspaceId）复制审批策略（approval_policies）与 PR Review 配置（pr_review_configs）至新工作区；需 DB 启用时生效。
+
+## 4. 策略包导出/导入（已实现）
 
 | 方法 | 路径 | 说明 | 状态 |
 |------|------|------|------|
-| GET | `/api/approval-policies/export?workspaceId=` | 导出审批策略为 JSON | 规划 |
-| POST | `/api/approval-policies/import` | 从 JSON 导入到工作区 | 规划 |
+| GET | `/api/approval-policies/export?workspaceId=` | 导出审批策略为 JSON（响应 data: { workspaceId, policies: [{ triggerEvent, riskLevel?, approverRule, timeoutMinutes }] }） | 已实现 |
+| POST | `/api/approval-policies/import` | 从 JSON 导入到工作区（body: { workspaceId, policies: [...] }），每条策略生成新 policyId | 已实现 |
 
 （模型策略若独立存储，可对称增加 export/import。）
 
-## 5. 技能仓（规划）
+## 5. 技能仓（已实现）
 
 | 方法 | 路径 | 说明 | 状态 |
 |------|------|------|------|
-| GET | `/api/skills/registry/packages` | 技能仓包列表（版本、状态过滤） | 规划 |
-| GET | `/api/skills/registry/packages/:packageId/versions` | 某包版本列表 | 规划 |
-| POST | `/api/skills/packages` | 扩展：sourceType=registry, sourceRef=packageId@version | 规划 |
+| GET | `/api/skills/registry/packages` | 技能仓包列表（query: status 可选，按是否有 published 版本过滤） | 已实现 |
+| GET | `/api/skills/registry/packages/:packageId/versions` | 某包版本列表（version、sourceRef、status、createdAt） | 已实现 |
+| POST | `/api/skills/packages` | 扩展：sourceType=registry，sourceRef=packageId@version，workspaceId 必填；创建后 status=imported，可继续走审核/批准流程 | 已实现 |
+
+- **sourceRef 格式**：`packageId@version`（如 `e2e-registry-pkg@1.0.0`）。仅 published 版本可被引入；包或版本不存在返回 404，版本未发布返回 400。
+- **响应**：沿用统一结构，data 为包列表或版本列表或新建技能包对象。
 
 ## 6. 通用约定
 

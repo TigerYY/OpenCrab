@@ -2,11 +2,16 @@ import { IsIn, IsOptional, IsString } from "class-validator";
 
 export class CreateSkillPackageDto {
   @IsString()
-  @IsIn(["official", "private", "third_party"])
-  sourceType!: "official" | "private" | "third_party";
+  @IsIn(["official", "private", "third_party", "registry"])
+  sourceType!: "official" | "private" | "third_party" | "registry";
 
   @IsString()
-  version!: string;
+  @IsOptional()
+  version?: string;
+
+  @IsString()
+  @IsOptional()
+  sourceRef?: string;
 
   @IsString()
   @IsOptional()

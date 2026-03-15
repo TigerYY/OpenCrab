@@ -127,8 +127,10 @@
 ### Phase 3 当前进展
 
 - **部署模板（E1）**：docker-compose 编排与健康检查、部署文档与 compose-smoke 已就绪。
-- **团队模板（E2）**：工作区模板 API 与管理台 Templates 入口、从模板创建工作区已就绪。
-- **后续**：企业私有技能仓、跨团队能力复用。
+- **团队模板（E2）**：工作区模板 API、从模板创建工作区（自动复制审批策略与 PR Review 配置）、模板详情策略摘要、管理台 Templates 页已就绪。
+- **策略包与运营（E4）**：审批策略导出/导入 API 与管理台入口、Phase 3 运营手册已交付；phase3-smoke 已接入 CI。
+- **企业私有技能仓（E3）**：技能仓 API（GET registry/packages、GET registry/packages/:packageId/versions）、POST skills/packages 支持 sourceType=registry+sourceRef、管理台「技能仓」视图与「引入到工作区」闭环已交付；phase3-smoke 与 E2E 已覆盖。
+- **可签收**：E3 已交付，Phase 3 彻底完成，可签收；签收后可进入 Phase 4。
 
 ## 7. Phase 4：组织级治理
 

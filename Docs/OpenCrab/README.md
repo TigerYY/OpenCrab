@@ -32,6 +32,7 @@
 | `OpenCrab-Phase3-Interface-Contract-Pack.md` | Phase 3 接口契约：模板 API、策略导出/导入、技能仓 API |
 | `OpenCrab-Phase3-Pilot-Acceptance-Pack.md` | Phase 3 试点验收包：新团队开通、模板与技能仓验收场景 |
 | `OpenCrab-Phase3-Execution-Timeline-RACI.md` | Phase 3 排期与责任分工：Sprint 1-4、RACI、DRI、冻结点 |
+| `OpenCrab-Phase3-Operations-Manual.md` | Phase 3 运营手册：新团队开通步骤、策略包导出/导入、检查清单与回滚 |
 | `OpenCrab-Deployment-Template.md` | Phase 3 E1 标准部署模板：compose 编排、健康检查、部署说明与常见问题 |
 | `OpenCrab-Longterm-Roadmap.md` | 12-18 个月战略总览：能力域地图、Phase 与能力域映射、近程/中远程优先级 |
 | `OpenCrab-Phase4-Execution-Backlog.md` | Phase 4 组织级治理可执行看板（骨架） |

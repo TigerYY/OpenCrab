@@ -16,6 +16,6 @@ import { IntegrationsService } from "./integrations.service";
     PrReviewConfigService,
     PrReviewConfigRepository
   ],
-  exports: [IntegrationsService]
+  exports: [IntegrationsService, PrReviewConfigService]
 })
 export class IntegrationsModule {}

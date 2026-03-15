@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -13,6 +14,7 @@ import { Request } from "express";
 
 import { ApprovalPolicyService } from "./approval-policy.service";
 import { CreateApprovalPolicyDto } from "./dto/create-approval-policy.dto";
+import { ImportApprovalPoliciesDto } from "./dto/import-approval-policies.dto";
 import { UpdateApprovalPolicyDto } from "./dto/update-approval-policy.dto";
 
 @Controller("approval-policies")
@@ -40,6 +42,37 @@ export class ApprovalPolicyController {
       code: "OK",
       message: "success",
       data: await this.approvalPolicyService.list(workspaceId),
+      traceId: req.requestContext?.traceId ?? "unknown"
+    };
+  }
+
+  @Get("export")
+  async export(
+    @Req() req: Request,
+    @Query("workspaceId") workspaceId?: string
+  ) {
+    if (!workspaceId) {
+      throw new BadRequestException("workspaceId is required");
+    }
+    const data = await this.approvalPolicyService.exportBundle(workspaceId);
+    return {
+      code: "OK",
+      message: "success",
+      data: { workspaceId, policies: data },
+      traceId: req.requestContext?.traceId ?? "unknown"
+    };
+  }
+
+  @Post("import")
+  async import(@Req() req: Request, @Body() body: ImportApprovalPoliciesDto) {
+    const data = await this.approvalPolicyService.importBundle(
+      body.workspaceId,
+      body.policies
+    );
+    return {
+      code: "OK",
+      message: "success",
+      data: { imported: data.length, policies: data },
       traceId: req.requestContext?.traceId ?? "unknown"
     };
   }

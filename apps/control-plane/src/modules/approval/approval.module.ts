@@ -14,6 +14,7 @@ import { ApprovalService } from "./approval.service";
     ApprovalRepository,
     ApprovalPolicyService,
     ApprovalPolicyRepository
-  ]
+  ],
+  exports: [ApprovalPolicyService]
 })
 export class ApprovalModule {}

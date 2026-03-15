@@ -14,6 +14,7 @@
     "smoke:phase1": "bash scripts/phase1-smoke.sh",
     "uat:phase1": "bash scripts/phase1-uat.sh",
     "closeout:phase1": "node scripts/generate-phase1-closeout.mjs",
-    "smoke:phase2": "bash scripts/phase2-smoke.sh"
+    "smoke:phase2": "bash scripts/phase2-smoke.sh",
+    "smoke:phase3": "bash scripts/phase3-smoke.sh"
   }
 }

@@ -344,6 +344,51 @@ describe("OpenCrab control-plane e2e", () => {
     expect(Array.isArray(approvedRes.body.data)).toBe(true);
   });
 
+  it("skills registry packages, versions, and import-from-registry work when DB available", async () => {
+    const packagesRes = await request(app.getHttpServer())
+      .get("/api/skills/registry/packages")
+      .set(headerSet);
+    expect(packagesRes.status).toBe(200);
+    expect(packagesRes.body.code).toBe("OK");
+    expect(Array.isArray(packagesRes.body.data)).toBe(true);
+    if (packagesRes.body.data.length === 0) return;
+
+    const pkg = packagesRes.body.data[0] as { packageId: string };
+    const packageId = pkg.packageId;
+    const versionsRes = await request(app.getHttpServer())
+      .get(`/api/skills/registry/packages/${encodeURIComponent(packageId)}/versions`)
+      .set(headerSet);
+    expect(versionsRes.status).toBe(200);
+    expect(Array.isArray(versionsRes.body.data)).toBe(true);
+    const versions = versionsRes.body.data as { version: string; status: string }[];
+    const published = versions.find((v) => v.status === "published");
+    if (!published) return;
+
+    const sourceRef = `${packageId}@${published.version}`;
+    const createRes = await request(app.getHttpServer())
+      .post("/api/skills/packages")
+      .set(headerSet)
+      .send({
+        workspaceId: "ws_default",
+        sourceType: "registry",
+        sourceRef
+      });
+    expect(createRes.status).toBe(201);
+    expect(createRes.body.code).toBe("OK");
+    expect(createRes.body.data.skillId).toMatch(/^reg_/);
+    expect(createRes.body.data.status).toBe("imported");
+    expect(createRes.body.data.sourceType).toBe("registry");
+
+    const listRes = await request(app.getHttpServer())
+      .get("/api/skills/packages?workspaceId=ws_default")
+      .set(headerSet);
+    expect(listRes.status).toBe(200);
+    const list = listRes.body.data as { skillId: string; status: string }[];
+    const found = list.find((s) => s.skillId === createRes.body.data.skillId);
+    expect(found).toBeDefined();
+    expect(found?.status).toBe("imported");
+  });
+
   it("metrics adoption, quality, governance, platform work", async () => {
     const adoptionRes = await request(app.getHttpServer())
       .get("/api/metrics/adoption?workspaceId=ws_default")
@@ -450,5 +495,112 @@ describe("OpenCrab control-plane e2e", () => {
       expect(fromTplRes.body.data.name).toBe("E2E From Template");
     }
     expect([201, 500]).toContain(createTplRes.status);
+  });
+
+  it("create-workspace-from-template copies approval policies and PR review configs when DB available", async () => {
+    const polRes = await request(app.getHttpServer())
+      .post("/api/approval-policies")
+      .set(headerSet)
+      .send({
+        workspaceId: "ws_default",
+        triggerEvent: "skill_high_risk",
+        approverRule: "workspace_admins",
+        timeoutMinutes: 60
+      });
+    const prRes = await request(app.getHttpServer())
+      .post("/api/integrations/pr-review/configs")
+      .set(headerSet)
+      .send({ workspaceId: "ws_default", repo: "e2e/repo" });
+    const dbAvailable = polRes.status === 201 && prRes.status === 201;
+    if (!dbAvailable) return;
+
+    const createTplRes = await request(app.getHttpServer())
+      .post("/api/workspace-templates")
+      .set(headerSet)
+      .send({ name: "e2e-copy-config", sourceWorkspaceId: "ws_default" });
+    if (createTplRes.status !== 201) return;
+    const templateId: string = createTplRes.body.data.templateId;
+
+    const fromTplRes = await request(app.getHttpServer())
+      .post("/api/workspaces/from-template")
+      .set(headerSet)
+      .send({ templateId, name: "E2E Cloned With Config" });
+    expect(fromTplRes.status).toBe(201);
+    const newWorkspaceId = fromTplRes.body.data.id;
+
+    const policiesList = await request(app.getHttpServer())
+      .get(`/api/approval-policies?workspaceId=${newWorkspaceId}`)
+      .set(headerSet);
+    expect(policiesList.status).toBe(200);
+    expect(Array.isArray(policiesList.body.data)).toBe(true);
+    expect(policiesList.body.data.length).toBeGreaterThanOrEqual(1);
+
+    const configsList = await request(app.getHttpServer())
+      .get(`/api/integrations/pr-review/configs?workspaceId=${newWorkspaceId}`)
+      .set(headerSet);
+    expect(configsList.status).toBe(200);
+    expect(Array.isArray(configsList.body.data)).toBe(true);
+    expect(configsList.body.data.length).toBeGreaterThanOrEqual(1);
+
+    await request(app.getHttpServer())
+      .delete(`/api/approval-policies/${polRes.body.data.policyId}`)
+      .set(headerSet);
+    await request(app.getHttpServer())
+      .delete(`/api/integrations/pr-review/configs/${prRes.body.data.configId}`)
+      .set(headerSet);
+  });
+
+  it("approval-policies export and import when DB available", async () => {
+    const createRes = await request(app.getHttpServer())
+      .post("/api/approval-policies")
+      .set(headerSet)
+      .send({
+        workspaceId: "ws_default",
+        triggerEvent: "e2e_export_test",
+        approverRule: "workspace_admins",
+        timeoutMinutes: 90
+      });
+    if (createRes.status !== 201) return;
+    const policyId = createRes.body.data.policyId;
+
+    const exportRes = await request(app.getHttpServer())
+      .get("/api/approval-policies/export?workspaceId=ws_default")
+      .set(headerSet);
+    expect(exportRes.status).toBe(200);
+    expect(exportRes.body.data).toHaveProperty("workspaceId", "ws_default");
+    expect(Array.isArray(exportRes.body.data.policies)).toBe(true);
+    expect(exportRes.body.data.policies.length).toBeGreaterThanOrEqual(1);
+
+    const importRes = await request(app.getHttpServer())
+      .post("/api/approval-policies/import")
+      .set(headerSet)
+      .send({
+        workspaceId: "ws_default",
+        policies: [
+          { triggerEvent: "imported_event", approverRule: "imported_rule", timeoutMinutes: 120 }
+        ]
+      });
+    expect(importRes.status).toBe(201);
+    expect(importRes.body.data.imported).toBe(1);
+    expect(Array.isArray(importRes.body.data.policies)).toBe(true);
+    expect(importRes.body.data.policies.length).toBe(1);
+
+    const listRes = await request(app.getHttpServer())
+      .get("/api/approval-policies?workspaceId=ws_default")
+      .set(headerSet);
+    expect(listRes.status).toBe(200);
+    const policies = listRes.body.data as { policyId: string; triggerEvent?: string }[];
+    const imported = policies.find((p) => p.triggerEvent === "imported_event");
+    expect(imported).toBeDefined();
+
+    await request(app.getHttpServer())
+      .delete(`/api/approval-policies/${policyId}`)
+      .set(headerSet);
+    const toDelete = policies.find((p) => p.triggerEvent === "imported_event");
+    if (toDelete?.policyId) {
+      await request(app.getHttpServer())
+        .delete(`/api/approval-policies/${toDelete.policyId}`)
+        .set(headerSet);
+    }
   });
 });

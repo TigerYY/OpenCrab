@@ -18,6 +18,7 @@ export interface SkillPackageRow {
   riskLevel: string | null;
   status: SkillStatus;
   workspaceId: string | null;
+  registryRef: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -41,8 +42,8 @@ export class SkillsRepository {
     const now = new Date().toISOString();
     await this.postgres.query(
       `INSERT INTO skill_packages
-        (skill_id, source_type, version, risk_level, status, workspace_id, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        (skill_id, source_type, version, risk_level, status, workspace_id, registry_ref, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [
         row.skillId,
         row.sourceType,
@@ -50,6 +51,7 @@ export class SkillsRepository {
         row.riskLevel ?? null,
         row.status ?? "imported",
         row.workspaceId ?? null,
+        row.registryRef ?? null,
         now,
         now
       ]
@@ -60,11 +62,13 @@ export class SkillsRepository {
   async getById(skillId: string): Promise<SkillPackageRow | null> {
     const result = await this.postgres.query<SkillPackageRow>(
       `SELECT skill_id as "skillId", source_type as "sourceType", version, risk_level as "riskLevel",
-              status, workspace_id as "workspaceId", created_at as "createdAt", updated_at as "updatedAt"
+              status, workspace_id as "workspaceId", registry_ref as "registryRef", created_at as "createdAt", updated_at as "updatedAt"
        FROM skill_packages WHERE skill_id = $1 LIMIT 1`,
       [skillId]
     );
     if (!result.rowCount || result.rowCount < 1) return null;
+    const r = result.rows[0] as unknown as Record<string, unknown>;
+    if (r && !("registryRef" in r)) r.registryRef = null;
     return result.rows[0];
   }
 
@@ -99,10 +103,14 @@ export class SkillsRepository {
     const where = conditions.length ? ` WHERE ${conditions.join(" AND ")}` : "";
     const result = await this.postgres.query<SkillPackageRow>(
       `SELECT skill_id as "skillId", source_type as "sourceType", version, risk_level as "riskLevel",
-              status, workspace_id as "workspaceId", created_at as "createdAt", updated_at as "updatedAt"
+              status, workspace_id as "workspaceId", registry_ref as "registryRef", created_at as "createdAt", updated_at as "updatedAt"
        FROM skill_packages${where} ORDER BY created_at DESC LIMIT 200`,
       params
     );
+    result.rows.forEach((r) => {
+      const row = r as unknown as Record<string, unknown>;
+      if (row && !("registryRef" in row)) row.registryRef = null;
+    });
     return result.rows;
   }
 

@@ -61,8 +61,10 @@ type WorkspaceTemplate = {
   optionsJson: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
+  approvalPoliciesCount?: number;
+  prReviewConfigsCount?: number;
 };
-type ConsoleTab = "workspace" | "audit" | "approval" | "skills" | "jobs" | "observability" | "templates";
+type ConsoleTab = "workspace" | "audit" | "approval" | "skills" | "registry" | "jobs" | "observability" | "templates";
 type AdoptionMetrics = { wau: number; workspaceAdoptionRate: number; pilotRetention: number };
 type QualityMetrics = {
   answerSatisfaction: number;
@@ -97,6 +99,24 @@ type ApprovedSkillViewItem = {
   version: string;
   status: string;
   workspaceId: string;
+};
+type RegistryPackageItem = {
+  packageId: string;
+  name: string;
+  description?: string;
+  latestVersion?: string;
+  latestStatus?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+type RegistryVersionItem = {
+  id?: number;
+  packageId: string;
+  version: string;
+  sourceRef?: string;
+  status: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 type DeadLetter = {
   taskKey: string;
@@ -191,6 +211,8 @@ export function App() {
   >("all");
   const [approvalPolicies, setApprovalPolicies] = useState<ApprovalPolicy[]>([]);
   const [timeoutTickets, setTimeoutTickets] = useState<ApprovalTicket[]>([]);
+  const [approvalImportJson, setApprovalImportJson] = useState("");
+  const [approvalImportResult, setApprovalImportResult] = useState<string | null>(null);
   const [selectedTicketIds, setSelectedTicketIds] = useState<Set<string>>(new Set());
   const [skillPackages, setSkillPackages] = useState<SkillPackage[]>([]);
   const [approvedSkillView, setApprovedSkillView] = useState<ApprovedSkillViewItem[]>([]);
@@ -217,6 +239,14 @@ export function App() {
   const [createFromTemplateId, setCreateFromTemplateId] = useState("");
   const [createFromTemplateName, setCreateFromTemplateName] = useState("");
   const [newTemplateName, setNewTemplateName] = useState("");
+  const [selectedTemplateSummary, setSelectedTemplateSummary] = useState<{
+    approvalPoliciesCount?: number;
+    prReviewConfigsCount?: number;
+  } | null>(null);
+  const [registryPackages, setRegistryPackages] = useState<RegistryPackageItem[]>([]);
+  const [selectedRegistryPackageId, setSelectedRegistryPackageId] = useState<string>("");
+  const [registryVersions, setRegistryVersions] = useState<RegistryVersionItem[]>([]);
+  const [registryImporting, setRegistryImporting] = useState<string | null>(null);
 
   const summary = useMemo(
     () => ({
@@ -448,6 +478,73 @@ export function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspaceId, statsDays, statsTopN, alertWindowMinutes, alertThreshold]);
 
+  useEffect(() => {
+    if (!createFromTemplateId) {
+      setSelectedTemplateSummary(null);
+      return;
+    }
+    let cancelled = false;
+    fetch(`${API_BASE}/workspace-templates/${encodeURIComponent(createFromTemplateId)}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" }
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled || !d?.data) return;
+        setSelectedTemplateSummary({
+          approvalPoliciesCount: d.data.approvalPoliciesCount,
+          prReviewConfigsCount: d.data.prReviewConfigsCount
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setSelectedTemplateSummary(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [createFromTemplateId]);
+
+  useEffect(() => {
+    if (tab !== "registry") return;
+    let cancelled = false;
+    api<RegistryPackageItem[]>(
+      "/skills/registry/packages",
+      { method: "GET" },
+      workspaceId
+    )
+      .then((data) => {
+        if (!cancelled) setRegistryPackages(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setRegistryPackages([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, workspaceId]);
+
+  useEffect(() => {
+    if (!selectedRegistryPackageId) {
+      setRegistryVersions([]);
+      return;
+    }
+    let cancelled = false;
+    api<RegistryVersionItem[]>(
+      `/skills/registry/packages/${encodeURIComponent(selectedRegistryPackageId)}/versions`,
+      { method: "GET" },
+      workspaceId
+    )
+      .then((data) => {
+        if (!cancelled) setRegistryVersions(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setRegistryVersions([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedRegistryPackageId, workspaceId]);
+
   async function createWorkspace(event: FormEvent) {
     event.preventDefault();
     await api<Workspace>(
@@ -601,6 +698,53 @@ export function App() {
     await refreshAll();
   }
 
+  async function exportApprovalPolicies() {
+    const res = await fetch(
+      `${API_BASE}/approval-policies/export?workspaceId=${encodeURIComponent(workspaceId)}`,
+      { method: "GET", headers: { "Content-Type": "application/json" } }
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      alert(err?.message ?? `Export failed: ${res.status}`);
+      return;
+    }
+    const data = await res.json();
+    const blob = new Blob([JSON.stringify(data.data, null, 2)], {
+      type: "application/json"
+    });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `approval-policies-${workspaceId}-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  async function importApprovalPolicies() {
+    setApprovalImportResult(null);
+    let payload: { workspaceId: string; policies: { triggerEvent: string; riskLevel?: string; approverRule: string; timeoutMinutes?: number }[] };
+    try {
+      const parsed = JSON.parse(approvalImportJson);
+      const policies = Array.isArray(parsed.policies) ? parsed.policies : (Array.isArray(parsed) ? parsed : []);
+      payload = { workspaceId, policies };
+    } catch {
+      setApprovalImportResult("JSON 格式无效");
+      return;
+    }
+    const res = await fetch(`${API_BASE}/approval-policies/import`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      setApprovalImportResult(data?.message ?? `导入失败: ${res.status}`);
+      return;
+    }
+    setApprovalImportResult(`已导入 ${data?.data?.imported ?? 0} 条策略`);
+    setApprovalImportJson("");
+    await refreshAll();
+  }
+
   async function batchDecisionApprovals(decision: "approved" | "rejected") {
     const ids = Array.from(selectedTicketIds);
     if (ids.length === 0) return;
@@ -706,6 +850,12 @@ export function App() {
           onClick={() => setTab("skills")}
         >
           Skills
+        </button>
+        <button
+          className={tab === "registry" ? "tab active" : "tab"}
+          onClick={() => setTab("registry")}
+        >
+          技能仓
         </button>
         <button
           className={tab === "jobs" ? "tab active" : "tab"}
@@ -937,7 +1087,23 @@ export function App() {
                 placeholder="timeoutMinutes"
               />
               <button type="submit">新建策略</button>
+              <button type="button" onClick={() => void exportApprovalPolicies()}>
+                导出策略包
+              </button>
             </form>
+            <div className="form">
+              <textarea
+                value={approvalImportJson}
+                onChange={(e) => { setApprovalImportJson(e.target.value); setApprovalImportResult(null); }}
+                placeholder='粘贴导出 JSON（含 policies 数组）或 [ { "triggerEvent", "approverRule", "timeoutMinutes" } ]'
+                rows={3}
+                style={{ width: "100%", maxWidth: 640 }}
+              />
+              <button type="button" onClick={() => void importApprovalPolicies()}>
+                导入策略包
+              </button>
+              {approvalImportResult != null ? <span className="text-slate-600">{approvalImportResult}</span> : null}
+            </div>
             <ul>
               {approvalPolicies.map((p) => (
                 <li key={p.policyId}>
@@ -1049,6 +1215,81 @@ export function App() {
             </div>
           </section>
         </>
+      ) : null}
+
+      {tab === "registry" ? (
+        <section className="card">
+          <h2>技能仓</h2>
+          <p className="text-sm text-slate-600">
+            当前工作区: <code>{workspaceId}</code>。选择包后查看版本，点击「引入到当前工作区」将技能导入到工作区，再在 Skills 页完成审核/批准。
+          </p>
+          <h3>包列表</h3>
+          <ul>
+            {registryPackages.map((pkg) => (
+              <li key={pkg.packageId}>
+                <button
+                  type="button"
+                  className={selectedRegistryPackageId === pkg.packageId ? "active" : ""}
+                  onClick={() =>
+                    setSelectedRegistryPackageId(
+                      selectedRegistryPackageId === pkg.packageId ? "" : pkg.packageId
+                    )
+                  }
+                >
+                  <code>{pkg.packageId}</code> — {pkg.name ?? pkg.packageId}
+                  {pkg.latestVersion ? ` (最新: ${pkg.latestVersion})` : ""}
+                </button>
+              </li>
+            ))}
+            {registryPackages.length === 0 && tab === "registry" ? (
+              <li className="text-slate-500">暂无技能仓包（需控制面 DB 与种子数据）</li>
+            ) : null}
+          </ul>
+          {selectedRegistryPackageId ? (
+            <>
+              <h3>版本列表: {selectedRegistryPackageId}</h3>
+              <ul>
+                {registryVersions.map((v) => (
+                  <li key={`${v.packageId}@${v.version}`}>
+                    <code>{v.version}</code> — {v.status}
+                    {v.status === "published" ? (
+                      <button
+                        type="button"
+                        disabled={registryImporting === `${v.packageId}@${v.version}`}
+                        onClick={async () => {
+                          const ref = `${v.packageId}@${v.version}`;
+                          setRegistryImporting(ref);
+                          try {
+                            await api<SkillPackage>("/skills/packages", {
+                              method: "POST",
+                              body: JSON.stringify({
+                                workspaceId,
+                                sourceType: "registry",
+                                sourceRef: ref
+                              })
+                            }, workspaceId);
+                            setMessage(`已引入 ${ref} 到当前工作区`);
+                            setRegistryImporting(null);
+                            await refreshAll();
+                            setTab("skills");
+                          } catch (e) {
+                            setMessage(`引入失败: ${(e as Error).message}`);
+                            setRegistryImporting(null);
+                          }
+                        }}
+                      >
+                        {registryImporting === `${v.packageId}@${v.version}` ? "引入中..." : "引入到当前工作区"}
+                      </button>
+                    ) : null}
+                  </li>
+                ))}
+                {registryVersions.length === 0 && selectedRegistryPackageId ? (
+                  <li className="text-slate-500">该包暂无版本</li>
+                ) : null}
+              </ul>
+            </>
+          ) : null}
+        </section>
       ) : null}
 
       {tab === "skills" ? (
@@ -1395,6 +1636,12 @@ export function App() {
                 ))}
               </select>
             </label>
+            {selectedTemplateSummary != null ? (
+              <p className="text-sm text-slate-600">
+                策略摘要: 审批策略 {selectedTemplateSummary.approvalPoliciesCount ?? 0} 条，PR Review 配置{" "}
+                {selectedTemplateSummary.prReviewConfigsCount ?? 0} 条
+              </p>
+            ) : null}
             <input
               value={createFromTemplateName}
               onChange={(e) => setCreateFromTemplateName(e.target.value)}
@@ -1407,6 +1654,12 @@ export function App() {
             {templates.map((t) => (
               <li key={t.templateId}>
                 <code>{t.templateId}</code> - {t.name} (来源: {t.sourceWorkspaceId})
+                {t.approvalPoliciesCount != null || t.prReviewConfigsCount != null ? (
+                  <span className="text-slate-500 text-sm">
+                    {" "}
+                    | 审批: {t.approvalPoliciesCount ?? 0}, PR配置: {t.prReviewConfigsCount ?? 0}
+                  </span>
+                ) : null}
               </li>
             ))}
             {templates.length === 0 ? (

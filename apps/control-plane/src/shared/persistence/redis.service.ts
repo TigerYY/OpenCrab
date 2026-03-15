@@ -16,7 +16,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       const c = createClient({ url });
       try {
         await c.connect();
-        this.client = c;
+        this.client = c as RedisClientType;
         this.connected = true;
         return;
       } catch {

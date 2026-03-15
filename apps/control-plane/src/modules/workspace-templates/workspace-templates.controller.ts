@@ -30,7 +30,7 @@ export class WorkspaceTemplatesController {
     return {
       code: "OK",
       message: "success",
-      data: await this.service.getById(templateId),
+      data: await this.service.getByIdWithSummary(templateId),
       traceId: req.requestContext?.traceId ?? "unknown"
     };
   }

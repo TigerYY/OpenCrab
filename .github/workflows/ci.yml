@@ -62,6 +62,9 @@ jobs:
       - name: Run Phase 2 smoke
         run: npm run smoke:phase2
 
+      - name: Run Phase 3 smoke
+        run: npm run smoke:phase3
+
       - name: Stop control-plane
         if: always()
         run: |

@@ -65,4 +65,41 @@ export class ApprovalPolicyService {
     }
     return this.approvalPolicyRepository.list(workspaceId);
   }
+
+  async exportBundle(workspaceId: string): Promise<
+    { triggerEvent: string; riskLevel: string | null; approverRule: string; timeoutMinutes: number }[]
+  > {
+    if (!this.approvalPolicyRepository.isDbEnabled()) {
+      return [];
+    }
+    const rows = await this.approvalPolicyRepository.list(workspaceId);
+    return rows.map((r) => ({
+      triggerEvent: r.triggerEvent,
+      riskLevel: r.riskLevel,
+      approverRule: r.approverRule,
+      timeoutMinutes: r.timeoutMinutes ?? 1440
+    }));
+  }
+
+  async importBundle(
+    workspaceId: string,
+    policies: { triggerEvent: string; riskLevel?: string; approverRule: string; timeoutMinutes?: number }[]
+  ): Promise<ApprovalPolicyRow[]> {
+    if (!this.approvalPolicyRepository.isDbEnabled()) {
+      throw new Error("APPROVAL_POLICY_REQUIRES_DB");
+    }
+    const created: ApprovalPolicyRow[] = [];
+    for (const p of policies) {
+      const row = await this.approvalPolicyRepository.create({
+        policyId: `pol_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        workspaceId,
+        triggerEvent: p.triggerEvent,
+        riskLevel: p.riskLevel ?? null,
+        approverRule: p.approverRule,
+        timeoutMinutes: p.timeoutMinutes ?? 1440
+      });
+      created.push(row as ApprovalPolicyRow);
+    }
+    return created;
+  }
 }

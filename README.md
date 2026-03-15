@@ -47,7 +47,7 @@ OpenCrab 基于 **OpenClaw** 的执行能力构建，面向**部门级与工作�
 - **Phase 0**：文档与架构已完成  
 - **Phase 1**：已完成（控制面 + 管理台 + UAT 与签收评审）  
 - **Phase 2**：已完成（审批治理、技能治理、作业编排、可观测、PR Review 深化与生产化工程），进入签收窗口  
-- **Phase 3**：已启动；E1 部署模板与 E2 团队模板 MVP 已交付；后续为技能仓与跨团队复用  
+- **Phase 3**：E1 部署模板、E2 团队模板（含策略复制与摘要）、E3 企业私有技能仓、E4 策略包导出/导入与运营手册已交付，phase3-smoke 已接入 CI；**E3 已交付，Phase 3 彻底完成，可签收**。  
 - **后续路线**：已规划至 Phase 7（组织级治理、运营与质量平台、企业入口与生态、平台化与商业基础），详见 [OpenCrab-Roadmap](Docs/OpenCrab/OpenCrab-Roadmap.md) 与 [OpenCrab-Longterm-Roadmap](Docs/OpenCrab/OpenCrab-Longterm-Roadmap.md)  
 
 ## 本地启动
